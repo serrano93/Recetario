@@ -75,9 +75,14 @@ export function DataView() {
       <div className="section-title">Editar con una IA</div>
       <div className="card" style={{ padding: 14 }}>
         <p className="small muted" style={{ marginTop: 0 }}>
-          Copia el recetario con las instrucciones, pégalo en el chat que uses y pídele lo que
-          quieras: "planifícame la semana con lo que hay", "añade estas recetas", "haz una semana
-          vegetariana". Luego pega aquí su respuesta.
+          Copia el recetario con las instrucciones y pégalo en el chat que uses. Dentro verás un
+          hueco marcado <strong>ESCRIBE AQUÍ LO QUE QUIERES</strong>: ahí pones tu petición
+          ("planifícame la semana con recetas rápidas", "añade estas recetas"). Luego pega aquí su
+          respuesta.
+        </p>
+        <p className="small muted" style={{ marginTop: 0 }}>
+          Si te contesta con un menú en texto en vez de JSON, dile{' '}
+          <em>"devuélvemelo solo como bloque JSON"</em> y lo reintenta.
         </p>
         <div className="row row-wrap">
           <button className="btn btn-primary" onClick={() => copiar(buildAiPrompt(data), 'prompt')}>
