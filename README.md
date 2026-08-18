@@ -41,39 +41,53 @@ npm run dev
 
 Sin más configuración la app ya funciona, guardando los datos en el navegador.
 
-## Desplegar en Vercel
+## En producción
 
-1. Entra en [vercel.com/new](https://vercel.com/new) e importa este repositorio.
-2. Vercel detecta Vite solo; `vercel.json` ya fija build y directorio de salida.
-3. Deploy. Ya tienes la URL.
+- **App:** https://recetario-omega-five.vercel.app
+- **Backend:** proyecto Supabase `recetario` (región `eu-west-1`).
 
+La rama de producción es `claude/hola-8ryaj0`: cada push despliega solo.
 En el móvil, *Compartir → Añadir a pantalla de inicio* la instala como app
 (el manifest y los iconos ya están puestos).
 
-## Compartir los datos entre los dos (Supabase)
+Ya están configurados: el esquema y sus políticas RLS, Realtime, el registro
+público **desactivado**, las URLs de redirección y las variables de entorno en
+Vercel. Lo único que queda por hacer a mano es invitar a las dos personas en
+*Supabase → Authentication → Users → Invite user*.
 
-Sin esto, cada móvil tiene su propia copia. Con esto, los dos veis lo mismo al
-instante.
+## Cómo funciona el acceso
+
+Todo el recetario vive en **una sola fila** de la tabla `recetario`. Las
+políticas RLS solo dejan leer y escribir a usuarios con sesión iniciada, y el
+registro público está desactivado: solo entra quien esté invitado desde el panel
+de Supabase.
+
+La clave `anon` del cliente es pública por diseño (va en el bundle del
+navegador); la seguridad la da RLS, no ocultarla. Comprobado: con la clave anon
+a secas, un `SELECT` devuelve vacío, un `INSERT` es rechazado y `signup` responde
+`signup_disabled`.
+
+Al entrar se pide el email y llega un enlace de acceso; se usa una vez y el móvil
+queda recordado.
+
+## Montarlo de cero en otra cuenta
 
 1. Crea un proyecto en [supabase.com](https://supabase.com).
 2. **SQL Editor** → pega y ejecuta [`supabase/schema.sql`](supabase/schema.sql).
-3. **Authentication → Providers → Email**: deja activado *Email*, y **desactiva
-   "Allow new users to sign up"**. Así solo entra quien tú invites.
-4. **Authentication → Users → Invite user**: invita vuestros dos correos.
-5. **Authentication → URL Configuration**: añade la URL de Vercel a *Site URL* y
-   a *Redirect URLs* (si no, el enlace de acceso no vuelve a la app).
-6. En Vercel, **Settings → Environment Variables**:
+3. **Authentication → Providers → Email**: activado, y **desactiva "Allow new
+   users to sign up"**.
+4. **Authentication → URL Configuration**: la URL de Vercel en *Site URL* y en
+   *Redirect URLs* (si no, el enlace de acceso no vuelve a la app).
+5. **Authentication → Users → Invite user**: los dos correos.
+6. En Vercel, **Settings → Environment Variables** (valores en Supabase →
+   *Project Settings → API*):
 
    ```
    VITE_SUPABASE_URL=https://xxxxx.supabase.co
    VITE_SUPABASE_ANON_KEY=eyJhbGci...
    ```
 
-   Los dos valores están en Supabase → *Project Settings → API*. La clave `anon`
-   es pública por diseño: quien manda es la política RLS del `schema.sql`, que
-   solo deja entrar a usuarios con sesión.
-7. Vuelve a desplegar. Al abrir la app pedirá el email y mandará un enlace de
-   acceso; se entra una vez y el móvil queda recordado.
+7. Vuelve a desplegar.
 
 Para desarrollo local, los mismos valores en un `.env.local`.
 
