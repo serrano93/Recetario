@@ -1,0 +1,17 @@
+{
+  "name": "Recetario",
+  "short_name": "Recetario",
+  "description": "Recetas, menus de la semana y lista de la compra para dos.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf7f2",
+  "theme_color": "#c25a3a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
