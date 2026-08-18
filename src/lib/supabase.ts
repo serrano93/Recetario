@@ -113,15 +113,35 @@ export function onAuthChange(cb: (email: string | null) => void): () => void {
   };
 }
 
-/** Envia el enlace magico de acceso. Devuelve el mensaje de error, si lo hay. */
-export async function sendMagicLink(email: string): Promise<string | null> {
+/**
+ * Dominio interno de las cuentas. Supabase exige un email, pero aqui nadie
+ * recibe correo: cada persona entra con su nombre y su contrasena, y el nombre
+ * se traduce a `nombre@recetario.app` antes de hablar con Supabase.
+ */
+const DOMINIO_INTERNO = 'recetario.app';
+
+export function emailDe(nombre: string): string {
+  const limpio = nombre
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+  return `${limpio}@${DOMINIO_INTERNO}`;
+}
+
+/** Inicia sesion. Devuelve el mensaje de error, o null si todo fue bien. */
+export async function signIn(nombre: string, password: string): Promise<string | null> {
   const client = await getClient();
-  if (!client) return 'Supabase no esta configurado.';
-  const { error } = await client.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.origin },
+  if (!client) return 'Supabase no está configurado.';
+  const { error } = await client.auth.signInWithPassword({
+    email: emailDe(nombre),
+    password,
   });
-  return error?.message ?? null;
+  if (!error) return null;
+  // El mensaje de Supabase habla de emails, que aqui no se ven nunca.
+  if (/invalid login/i.test(error.message)) return 'Nombre o contraseña incorrectos.';
+  return error.message;
 }
 
 export async function signOut(): Promise<void> {

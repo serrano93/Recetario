@@ -172,7 +172,7 @@ export function DataView() {
         {supabaseEnabled ? (
           <>
             <p className="small" style={{ marginTop: 0 }}>
-              Conectado como <strong>{email ?? 'sin sesión'}</strong>. Los cambios se comparten entre
+              Conectado como <strong>{email?.split('@')[0] ?? 'sin sesión'}</strong>. Los cambios se comparten entre
               los dos automáticamente.
             </p>
             {sync === 'error' && syncError && (

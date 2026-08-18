@@ -1,75 +1,95 @@
 import { useState } from 'react';
-import { sendMagicLink } from '../lib/supabase';
+import { signIn } from '../lib/supabase';
 import { IconChef } from './icons';
 
+/** Recuerda quien entro la ultima vez en este movil, para no teclearlo cada dia. */
+const ULTIMO_NOMBRE = 'recetario:ultimo-nombre';
+
 /**
- * Acceso por enlace magico: se escribe el email, llega un correo y con tocarlo
- * quedas dentro para siempre en ese movil. Sin contrasenas que recordar.
+ * Acceso con nombre y contraseña. No se pide email: cada nombre se traduce por
+ * dentro a una cuenta interna de Supabase.
  */
 export function Login({ onSkip }: { onSkip: () => void }) {
-  const [email, setEmail] = useState('');
-  const [estado, setEstado] = useState<'idle' | 'enviando' | 'enviado'>('idle');
+  const [nombre, setNombre] = useState(() => localStorage.getItem(ULTIMO_NOMBRE) ?? '');
+  const [password, setPassword] = useState('');
+  const [entrando, setEntrando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const enviar = async () => {
-    if (!email.trim()) return;
-    setEstado('enviando');
+  const puedeEntrar = nombre.trim() !== '' && password !== '' && !entrando;
+
+  const entrar = async () => {
+    if (!puedeEntrar) return;
+    setEntrando(true);
     setError(null);
-    const err = await sendMagicLink(email.trim());
+    const err = await signIn(nombre, password);
     if (err) {
       setError(err);
-      setEstado('idle');
+      setEntrando(false);
     } else {
-      setEstado('enviado');
+      try {
+        localStorage.setItem(ULTIMO_NOMBRE, nombre.trim());
+      } catch {
+        // Modo privado: no pasa nada, solo habra que teclearlo la proxima vez.
+      }
     }
   };
 
   return (
     <div className="center-screen">
-      <div className="card" style={{ padding: 24, maxWidth: 380, width: '100%' }}>
+      <form
+        className="card"
+        style={{ padding: 24, maxWidth: 380, width: '100%' }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          void entrar();
+        }}
+      >
         <div className="row" style={{ marginBottom: 14, color: 'var(--accent)' }}>
           <IconChef size={28} />
           <h1 style={{ fontSize: '1.3rem' }}>Recetario</h1>
         </div>
 
-        {estado === 'enviado' ? (
-          <div className="banner banner-ok">
-            Te he mandado un enlace a <strong>{email}</strong>. Ábrelo desde este mismo móvil y
-            entras directo.
+        <p className="small muted" style={{ marginTop: 0 }}>
+          Entra para compartir recetas, calendario y compra con la otra persona.
+        </p>
+
+        <div className="stack">
+          <div className="field">
+            <label htmlFor="nombre">Quién eres</label>
+            <input
+              id="nombre"
+              className="input"
+              autoComplete="username"
+              autoCapitalize="words"
+              placeholder="Andrea o Javier"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+            />
           </div>
-        ) : (
-          <>
-            <p className="small muted" style={{ marginTop: 0 }}>
-              Entra con tu email para compartir recetas, calendario y compra con la otra persona.
-            </p>
-            <div className="stack">
-              <input
-                className="input"
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                placeholder="tu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') void enviar();
-                }}
-              />
-              <button
-                className="btn btn-primary btn-block"
-                onClick={() => void enviar()}
-                disabled={!email.trim() || estado === 'enviando'}
-              >
-                {estado === 'enviando' ? 'Enviando...' : 'Enviarme el enlace'}
-              </button>
-              {error && <div className="banner banner-error">{error}</div>}
-              <button className="btn btn-ghost btn-block" onClick={onSkip}>
-                Usar solo en este móvil
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+
+          <div className="field">
+            <label htmlFor="password">Contraseña</label>
+            <input
+              id="password"
+              className="input"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button className="btn btn-primary btn-block" type="submit" disabled={!puedeEntrar}>
+            {entrando ? 'Entrando...' : 'Entrar'}
+          </button>
+
+          {error && <div className="banner banner-error">{error}</div>}
+
+          <button className="btn btn-ghost btn-block" type="button" onClick={onSkip}>
+            Usar solo en este móvil
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

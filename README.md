@@ -52,23 +52,36 @@ En el móvil, *Compartir → Añadir a pantalla de inicio* la instala como app
 
 Ya están configurados: el esquema y sus políticas RLS, Realtime, el registro
 público **desactivado**, las URLs de redirección y las variables de entorno en
-Vercel. Lo único que queda por hacer a mano es invitar a las dos personas en
-*Supabase → Authentication → Users → Invite user*.
+Vercel. Lo único que queda por hacer a mano es **crear las dos cuentas** (ver
+abajo).
 
 ## Cómo funciona el acceso
 
+Se entra con **nombre y contraseña**, sin email. Supabase exige un email
+internamente, así que el nombre se traduce a una cuenta interna:
+`Andrea` → `andrea@recetario.app`. Ese dominio no recibe correo nunca; es solo
+un identificador (`emailDe()` en `src/lib/supabase.ts`).
+
 Todo el recetario vive en **una sola fila** de la tabla `recetario`. Las
 políticas RLS solo dejan leer y escribir a usuarios con sesión iniciada, y el
-registro público está desactivado: solo entra quien esté invitado desde el panel
-de Supabase.
+registro público está desactivado: solo existen las cuentas creadas a mano.
 
 La clave `anon` del cliente es pública por diseño (va en el bundle del
-navegador); la seguridad la da RLS, no ocultarla. Comprobado: con la clave anon
-a secas, un `SELECT` devuelve vacío, un `INSERT` es rechazado y `signup` responde
-`signup_disabled`.
+navegador); la seguridad la da RLS, no ocultarla. Comprobado contra producción:
+con la clave anon a secas, un `SELECT` devuelve vacío, un `INSERT` es rechazado
+con `42501` y `signup` responde `signup_disabled`.
 
-Al entrar se pide el email y llega un enlace de acceso; se usa una vez y el móvil
-queda recordado.
+### Crear o cambiar una cuenta
+
+En *Supabase → Authentication → Users → Add user → Create new user*:
+
+- **Email:** el nombre en minúsculas y sin acentos, más `@recetario.app`
+  (`andrea@recetario.app`, `javier@recetario.app`).
+- **Password:** la que queráis.
+- Marca **Auto Confirm User**, o la cuenta se queda esperando una confirmación
+  por correo que nunca llegará.
+
+Para cambiar una contraseña, en esa misma pantalla: *⋯ → Reset password*.
 
 ## Montarlo de cero en otra cuenta
 
@@ -78,7 +91,7 @@ queda recordado.
    users to sign up"**.
 4. **Authentication → URL Configuration**: la URL de Vercel en *Site URL* y en
    *Redirect URLs* (si no, el enlace de acceso no vuelve a la app).
-5. **Authentication → Users → Invite user**: los dos correos.
+5. **Authentication → Users → Add user**: crea las cuentas con Auto Confirm.
 6. En Vercel, **Settings → Environment Variables** (valores en Supabase →
    *Project Settings → API*):
 
