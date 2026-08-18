@@ -1,7 +1,7 @@
 {
   "name": "Recetario",
   "short_name": "Recetario",
-  "description": "Recetas, menus de la semana y lista de la compra para dos.",
+  "description": "Recetas, menús de la semana y lista de la compra para dos.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#faf7f2",
