@@ -82,7 +82,21 @@ LO QUE TE PIDO (escribelo tu aqui antes de enviar):
 
 COMO TIENE QUE SER TU RESPUESTA
 
-Responde UNICAMENTE con un bloque \`\`\`json que contenga el documento completo.
+Responde UNICAMENTE con un bloque \`\`\`json que contenga SOLO LO QUE CAMBIA.
+
+No hace falta que repitas el documento entero: la app fusiona lo que le des.
+Manda solo las secciones que toques, cada una con sus elementos completos:
+
+\`\`\`json
+{
+  "recipes": [ ...las recetas nuevas o modificadas... ],
+  "plan":    [ ...las comidas nuevas o modificadas... ]
+}
+\`\`\`
+
+- Para MODIFICAR algo que ya existe, reutiliza su mismo "id".
+- Para ANADIR algo, inventa un "id" nuevo.
+- Lo que no menciones se queda como esta.
 
 NO escribas el menu en texto ni con emojis. NO hagas listas bonitas. NO expliques
 nada antes ni despues. Si te apetece comentar algo, metelo en el campo "notes" de

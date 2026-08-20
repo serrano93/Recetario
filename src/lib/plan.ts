@@ -1,5 +1,6 @@
 import type { AppData, PersonId, PlanEntry, PlanEvent, Slot } from '../types';
-import { isBetween } from './dates';
+import { SLOTS } from '../types';
+import { addDays, isBetween } from './dates';
 
 /** Planes activos en una fecha concreta. */
 export function eventsOn(events: PlanEvent[], date: string): PlanEvent[] {
@@ -49,6 +50,37 @@ export function coveredIn(entries: PlanEntry[]): Set<PersonId> {
   const s = new Set<PersonId>();
   for (const e of entries) for (const p of e.people) s.add(p);
   return s;
+}
+
+/**
+ * Los siguientes huecos libres a partir de (date, slot), sin contarlo a el.
+ * Se usa para colocar las sobras de una tanda en los dias que vienen.
+ */
+export function nextFreeSlots(
+  plan: PlanEntry[],
+  date: string,
+  slot: Slot,
+  count: number,
+  maxDias = 7,
+): { date: string; slot: Slot }[] {
+  const ocupado = new Set(plan.map((e) => `${e.date}|${e.slot}`));
+  const salida: { date: string; slot: Slot }[] = [];
+
+  // Los huecos del propio dia posteriores al slot actual, y luego dias enteros.
+  const candidatos: { date: string; slot: Slot }[] = [];
+  for (let d = 0; d <= maxDias; d += 1) {
+    const fecha = addDays(date, d);
+    for (const s of SLOTS) {
+      if (d === 0 && (s === slot || SLOTS.indexOf(s) < SLOTS.indexOf(slot))) continue;
+      candidatos.push({ date: fecha, slot: s });
+    }
+  }
+
+  for (const c of candidatos) {
+    if (salida.length >= count) break;
+    if (!ocupado.has(`${c.date}|${c.slot}`)) salida.push(c);
+  }
+  return salida;
 }
 
 /** Nombre visible de una comida planificada. */

@@ -4,6 +4,7 @@ import { rangeFrom, today } from '../lib/dates';
 import { buildShoppingList, formatQty, normalize, parseIngredient } from '../lib/ingredients';
 import { IconCheck, IconCopy, IconTrash } from '../components/icons';
 import { newId } from '../lib/validate';
+import { conLapidas, sellar } from '../lib/merge';
 
 /**
  * Lista de la compra: se calcula sola a partir de lo planificado en los
@@ -37,7 +38,7 @@ export function ShoppingView() {
     if (!ing) return;
     update((prev) => ({
       ...prev,
-      compra: [...prev.compra, { id: newId('c'), name: ing.name, qty: ing.qty, unit: ing.unit }],
+      compra: [...prev.compra, sellar({ id: newId('c'), name: ing.name, qty: ing.qty, unit: ing.unit })],
       // Si ya estaba tachado de una compra anterior, vuelve a la lista.
       compradosIds: prev.compradosIds.filter((k) => k !== normalize(ing.name)),
     }));
@@ -45,18 +46,26 @@ export function ShoppingView() {
   };
 
   const quitarManual = (key: string) =>
-    update((prev) => ({
-      ...prev,
-      compra: prev.compra.filter((i) => normalize(i.name) !== key),
-    }));
+    update((prev) => {
+      const fuera = prev.compra.filter((i) => normalize(i.name) === key).map((i) => i.id);
+      return {
+        ...prev,
+        compra: prev.compra.filter((i) => !fuera.includes(i.id)),
+        deleted: conLapidas(prev, fuera),
+      };
+    });
 
   const limpiarTachados = () =>
-    update((prev) => ({
-      ...prev,
-      compradosIds: [],
+    update((prev) => {
       // Los items sueltos ya comprados desaparecen; los de recetas vuelven solos.
-      compra: prev.compra.filter((i) => !prev.compradosIds.includes(normalize(i.name))),
-    }));
+      const fuera = prev.compra.filter((i) => prev.compradosIds.includes(normalize(i.name))).map((i) => i.id);
+      return {
+        ...prev,
+        compradosIds: [],
+        compra: prev.compra.filter((i) => !fuera.includes(i.id)),
+        deleted: conLapidas(prev, fuera),
+      };
+    });
 
   const copiar = async () => {
     const texto = pendientes

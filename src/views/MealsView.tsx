@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { PlanEntry, Recipe, Slot } from '../types';
 import { useStore } from '../store';
 import { normalize } from '../lib/ingredients';
+import { conLapidas, sellar } from '../lib/merge';
 import { RecipeSheet } from '../components/RecipeSheet';
 import { RecipeDetail } from '../components/RecipeDetail';
 import { IconClock, IconPlus, IconStar } from '../components/icons';
@@ -45,18 +46,19 @@ export function MealsView() {
     update((prev) => ({
       ...prev,
       recipes: prev.recipes.some((x) => x.id === r.id)
-        ? prev.recipes.map((x) => (x.id === r.id ? r : x))
-        : [...prev.recipes, r],
+        ? prev.recipes.map((x) => (x.id === r.id ? sellar(r) : x))
+        : [...prev.recipes, sellar(r)],
     }));
 
   const borrarReceta = (id: string) =>
     update((prev) => ({
       ...prev,
       recipes: prev.recipes.filter((r) => r.id !== id),
+      deleted: conLapidas(prev, [id]),
       // Las comidas ya planificadas se conservan como texto para no vaciar el calendario.
       plan: prev.plan.map((e) =>
         e.recipeId === id
-          ? { ...e, recipeId: undefined, text: prev.recipes.find((r) => r.id === id)?.name }
+          ? sellar({ ...e, recipeId: undefined, text: prev.recipes.find((r) => r.id === id)?.name })
           : e,
       ),
     }));
@@ -64,10 +66,11 @@ export function MealsView() {
   const alternarFavorita = (id: string) =>
     update((prev) => ({
       ...prev,
-      recipes: prev.recipes.map((r) => (r.id === id ? { ...r, favorite: !r.favorite } : r)),
+      recipes: prev.recipes.map((r) => (r.id === id ? sellar({ ...r, favorite: !r.favorite }) : r)),
     }));
 
-  const planificar = (entry: PlanEntry) => update((prev) => ({ ...prev, plan: [...prev.plan, entry] }));
+  const planificar = (entry: PlanEntry) =>
+    update((prev) => ({ ...prev, plan: [...prev.plan, sellar(entry)] }));
 
   const filtros: { id: Filtro; label: string }[] = [
     { id: 'todo', label: 'Todo' },

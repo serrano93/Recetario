@@ -51,6 +51,8 @@ export interface Recipe {
   fits: Slot[];
   /** Marcada como favorita, sale primero en el listado. */
   favorite?: boolean;
+  /** Ultima vez que se toco. Lo usa la fusion para saber que version gana. */
+  updatedAt?: string;
 }
 
 /**
@@ -71,6 +73,19 @@ export interface PlanEntry {
   text?: string;
   /** Ya cocinado/comido: se tacha y deja de contar para la compra. */
   done?: boolean;
+  /**
+   * Se cocina la tanda entera de la receta, no solo las raciones de quien come.
+   * Media olla de lentejas no existe: con esto la compra pide los ingredientes
+   * completos de la receta y sobra comida a proposito.
+   */
+  batch?: boolean;
+  /**
+   * Esta comida son las sobras de otra entrada del plan (su id).
+   * No suma nada en la lista de la compra: ya se compro al cocinar la tanda.
+   */
+  leftoverOf?: string;
+  /** Ultima vez que se toco. Lo usa la fusion para saber que version gana. */
+  updatedAt?: string;
 }
 
 /**
@@ -92,6 +107,8 @@ export interface PlanEvent {
   /** Slots en los que esas personas no comen en casa. Vacio = solo es una nota. */
   blocks: Slot[];
   notes?: string;
+  /** Ultima vez que se toco. Lo usa la fusion para saber que version gana. */
+  updatedAt?: string;
 }
 
 /** Item añadido a mano a la lista de la compra (no viene de ninguna receta). */
@@ -100,6 +117,20 @@ export interface ManualItem {
   name: string;
   qty?: number;
   unit?: string;
+  /** Ultima vez que se toco. Lo usa la fusion para saber que version gana. */
+  updatedAt?: string;
+}
+
+/**
+ * Lapida de algo borrado.
+ *
+ * Sin esto, al fusionar con el otro movil lo borrado reaparece: para el otro
+ * lado es simplemente "un elemento que yo tengo y tu no".
+ */
+export interface Tombstone {
+  id: string;
+  /** Momento del borrado, en ISO. */
+  at: string;
 }
 
 export interface AppData {
@@ -111,6 +142,8 @@ export interface AppData {
   events: PlanEvent[];
   /** Items sueltos de la compra: papel de cocina, cervezas... */
   compra: ManualItem[];
+  /** Ids borrados, para que la fusion no los resucite. Se podan a los 30 dias. */
+  deleted?: Tombstone[];
   /** Ingredientes marcados como comprados (clave normalizada del ingrediente). */
   compradosIds: string[];
   /**

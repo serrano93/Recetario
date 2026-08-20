@@ -5,6 +5,7 @@ import { PersonPicker } from './PersonPicker';
 import { IconClock, IconTrash } from './icons';
 import { formatLong } from '../lib/dates';
 import { normalize } from '../lib/ingredients';
+import { nextFreeSlots } from '../lib/plan';
 import { newId } from '../lib/validate';
 
 /**
@@ -27,7 +28,8 @@ export function MealSheet({
   /** Si viene, estamos editando; si no, creando. */
   entry?: PlanEntry;
   defaultPeople: PersonId[];
-  onSave: (entry: PlanEntry) => void;
+  /** `sobras` son entradas extra a crear cuando se cocina la tanda entera. */
+  onSave: (entry: PlanEntry, sobras: PlanEntry[]) => void;
   onDelete?: () => void;
   onClose: () => void;
 }) {
@@ -54,17 +56,50 @@ export function MealSheet({
 
   const puedeGuardar = people.length > 0 && (recipeId !== undefined || text.trim() !== '');
 
+  const receta = recipeId ? data.recipes.find((r) => r.id === recipeId) : undefined;
+
+  // Cuantas comidas mas dan de si las raciones que sobran de la tanda entera.
+  const comidasDeSobras =
+    receta && people.length > 0
+      ? Math.max(0, Math.floor((receta.servings - people.length) / people.length))
+      : 0;
+  // Las sobras de otra comida no vuelven a generar sobras.
+  const puedeTanda = comidasDeSobras > 0 && !entry?.leftoverOf;
+
+  const [batch, setBatch] = useState(entry?.batch ?? false);
+  const [crearSobras, setCrearSobras] = useState(true);
+
   const guardar = () => {
     if (!puedeGuardar) return;
-    onSave({
-      id: entry?.id ?? newId('e'),
+    const id = entry?.id ?? newId('e');
+    const principal: PlanEntry = {
+      id,
       date,
       slot,
       people,
       recipeId,
       text: recipeId ? undefined : text.trim(),
       done: entry?.done,
-    });
+      batch: puedeTanda && batch ? true : undefined,
+      leftoverOf: entry?.leftoverOf,
+    };
+
+    const sobras: PlanEntry[] = [];
+    if (puedeTanda && batch && crearSobras && !entry) {
+      const huecos = nextFreeSlots(data.plan, date, slot, comidasDeSobras);
+      for (const hueco of huecos) {
+        sobras.push({
+          id: newId('e'),
+          date: hueco.date,
+          slot: hueco.slot,
+          people,
+          recipeId,
+          leftoverOf: id,
+        });
+      }
+    }
+
+    onSave(principal, sobras);
     onClose();
   };
 
@@ -99,6 +134,38 @@ export function MealSheet({
           Con los dos marcados es una comida compartida. Marca solo a uno para ponerle algo distinto.
         </p>
       </div>
+
+      {puedeTanda && (
+        <div className="field">
+          <label>Cantidad</label>
+          <div className="segmented">
+            <button type="button" aria-pressed={!batch} onClick={() => setBatch(false)}>
+              Justo para {people.length}
+            </button>
+            <button type="button" aria-pressed={batch} onClick={() => setBatch(true)}>
+              Tanda entera ({receta!.servings})
+            </button>
+          </div>
+          <p className="tiny muted">
+            {batch
+              ? `Se compran los ingredientes completos de la receta y sobran ${comidasDeSobras} ${
+                  comidasDeSobras === 1 ? 'comida' : 'comidas'
+                }.`
+              : `Se compra la parte proporcional para ${people.length}.`}
+          </p>
+          {batch && !entry && (
+            <button
+              type="button"
+              className="chip chip-toggle"
+              aria-pressed={crearSobras}
+              onClick={() => setCrearSobras((v) => !v)}
+              style={{ alignSelf: 'flex-start' }}
+            >
+              {crearSobras ? '✓ ' : ''}Planificar las sobras
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="field">
         <label>Algo suelto, sin receta</label>

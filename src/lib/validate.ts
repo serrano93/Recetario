@@ -1,5 +1,15 @@
 import { CURRENT_VERSION, SLOTS } from '../types';
-import type { AppData, Ingredient, ManualItem, Person, PlanEntry, PlanEvent, Recipe, Slot } from '../types';
+import type {
+  AppData,
+  Ingredient,
+  ManualItem,
+  Person,
+  PlanEntry,
+  PlanEvent,
+  Recipe,
+  Slot,
+  Tombstone,
+} from '../types';
 import { DESPENSA_POR_DEFECTO } from './ingredients';
 import { today } from './dates';
 
@@ -109,6 +119,7 @@ function parseRecipe(v: unknown): Recipe | null {
     notes: asString(v.notes ?? v.notas) || undefined,
     fits: asSlots(v.fits ?? v.encaja),
     favorite: v.favorite === true || v.favorita === true ? true : undefined,
+    updatedAt: asString(v.updatedAt) || undefined,
   };
 }
 
@@ -132,6 +143,9 @@ function parseEntry(v: unknown, peopleIds: Set<string>): PlanEntry | null {
     recipeId,
     text,
     done: v.done === true || v.hecho === true ? true : undefined,
+    batch: v.batch === true || v.tanda === true ? true : undefined,
+    leftoverOf: asString(v.leftoverOf ?? v.sobrasDe).trim() || undefined,
+    updatedAt: asString(v.updatedAt) || undefined,
   };
 }
 
@@ -149,6 +163,7 @@ function parseEvent(v: unknown, peopleIds: Set<string>): PlanEvent | null {
     to: to < from ? from : to,
     blocks: asSlots(v.blocks ?? v.bloquea),
     notes: asString(v.notes ?? v.notas) || undefined,
+    updatedAt: asString(v.updatedAt) || undefined,
   };
 }
 
@@ -166,7 +181,19 @@ function parseManual(v: unknown): ManualItem | null {
     name,
     qty: qty && qty > 0 ? qty : undefined,
     unit: asString(v.unit ?? v.unidad).trim() || undefined,
+    updatedAt: asString(v.updatedAt) || undefined,
   };
+}
+
+function parseTombstones(v: unknown): Tombstone[] {
+  return asArray(v)
+    .map((x) => {
+      if (!isRecord(x)) return null;
+      const id = asString(x.id).trim();
+      const at = asString(x.at).trim();
+      return id && at ? { id, at } : null;
+    })
+    .filter((x): x is Tombstone => x !== null);
 }
 
 /** Convierte cualquier cosa en un `AppData` valido, contando lo que se descarto. */
@@ -230,11 +257,80 @@ export function sanitize(input: unknown): ValidationResult {
       plan,
       events,
       compra,
+      deleted: parseTombstones(raw.deleted),
       compradosIds: asStringArray(raw.compradosIds ?? raw.comprados),
       despensa,
       updatedAt: asString(raw.updatedAt) || new Date().toISOString(),
     },
   };
+}
+
+/**
+ * Saneado de un documento PARCIAL, para el modo fusionar del import.
+ *
+ * Pedirle a una IA que devuelva el documento entero se rompe en cuanto el
+ * recetario crece: trunca, se inventa ids o pierde recetas. Con esto puede
+ * devolver solo lo que cambia, por ejemplo `{"recipes": [...]}`.
+ *
+ * Solo se miran las claves presentes: lo que no venga, no se toca.
+ */
+export function sanitizePartial(
+  input: unknown,
+  peopleIds: Set<string>,
+): { patch: Partial<AppData>; warnings: string[]; counts: Record<string, number> } {
+  const warnings: string[] = [];
+  const counts: Record<string, number> = {};
+  const patch: Partial<AppData> = {};
+  if (!isRecord(input)) {
+    return { patch, warnings: ['El JSON no era un objeto.'], counts };
+  }
+
+  const recipesRaw = input.recipes ?? input.recetas;
+  if (recipesRaw !== undefined) {
+    const recipes = asArray(recipesRaw).map(parseRecipe).filter((x): x is Recipe => x !== null);
+    if (recipes.length < asArray(recipesRaw).length) {
+      warnings.push(`Se descartaron ${asArray(recipesRaw).length - recipes.length} recetas sin nombre.`);
+    }
+    patch.recipes = recipes;
+    counts.recetas = recipes.length;
+  }
+
+  const planRaw = input.plan;
+  if (planRaw !== undefined) {
+    const plan = asArray(planRaw)
+      .map((v) => parseEntry(v, peopleIds))
+      .filter((x): x is PlanEntry => x !== null);
+    if (plan.length < asArray(planRaw).length) {
+      warnings.push(`Se descartaron ${asArray(planRaw).length - plan.length} comidas mal formadas.`);
+    }
+    patch.plan = plan;
+    counts.comidas = plan.length;
+  }
+
+  const eventsRaw = input.events ?? input.eventos ?? input.planes;
+  if (eventsRaw !== undefined) {
+    const events = asArray(eventsRaw)
+      .map((v) => parseEvent(v, peopleIds))
+      .filter((x): x is PlanEvent => x !== null);
+    patch.events = events;
+    counts.planes = events.length;
+  }
+
+  const compraRaw = input.compra ?? input.shopping;
+  if (compraRaw !== undefined) {
+    const compra = asArray(compraRaw).map(parseManual).filter((x): x is ManualItem => x !== null);
+    patch.compra = compra;
+    counts['items de compra'] = compra.length;
+  }
+
+  const despensaRaw = input.despensa ?? input.pantry;
+  if (despensaRaw !== undefined) patch.despensa = asStringArray(despensaRaw);
+
+  if (Object.keys(patch).length === 0) {
+    warnings.push('El JSON no traía ninguna sección reconocible (recipes, plan, events, compra).');
+  }
+
+  return { patch, warnings, counts };
 }
 
 export function defaultPeople(): Person[] {

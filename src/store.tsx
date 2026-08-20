@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import type { AppData } from './types';
 import { seedData } from './lib/seed';
 import { sanitize } from './lib/validate';
+import { merge } from './lib/merge';
+import { pushSnapshot } from './lib/snapshots';
 import {
   currentEmail,
   fetchRemote,
@@ -21,8 +23,13 @@ interface StoreValue {
   data: AppData;
   /** Aplica un cambio; se persiste solo (local + Supabase si esta configurado). */
   update: (fn: (prev: AppData) => AppData) => void;
-  /** Sustituye TODO el recetario (import de JSON editado por una IA). */
-  replaceAll: (next: AppData) => void;
+  /**
+   * Sustituye TODO el recetario (import de JSON editado por una IA).
+   * Guarda antes una instantanea, para que siempre se pueda deshacer.
+   */
+  replaceAll: (next: AppData, motivo?: string) => void;
+  /** Mezcla un documento parcial sobre lo que hay, sin borrar nada. */
+  mergeIn: (parcial: Partial<AppData>) => void;
   sync: SyncState;
   syncError: string | null;
   /** Email de la sesion de Supabase, si hay. */
@@ -110,7 +117,49 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [flush],
   );
 
-  const replaceAll = useCallback((next: AppData) => commit(next), [commit]);
+  const replaceAll = useCallback(
+    (next: AppData, motivo = 'antes de sobrescribir') => {
+      setData((prev) => {
+        pushSnapshot(prev, motivo);
+        return prev;
+      });
+      commit(next);
+    },
+    [commit],
+  );
+
+  /**
+   * Aplica un documento parcial (p. ej. solo `recipes`) sobre el actual.
+   * Se apoya en la misma fusion que la sincronizacion, asi que las recetas
+   * nuevas se anaden y las que ya existian se actualizan, sin tocar el resto.
+   */
+  const mergeIn = useCallback(
+    (parcial: Partial<AppData>) => {
+      setData((prev) => {
+        pushSnapshot(prev, 'antes de fusionar');
+        const ahora = new Date().toISOString();
+        // El parche llega sellado ahora mismo para que gane a lo que ya habia.
+        const entrante: AppData = {
+          ...prev,
+          ...parcial,
+          recipes: (parcial.recipes ?? []).map((r) => ({ ...r, updatedAt: ahora })),
+          plan: (parcial.plan ?? []).map((e) => ({ ...e, updatedAt: ahora })),
+          events: (parcial.events ?? []).map((e) => ({ ...e, updatedAt: ahora })),
+          compra: (parcial.compra ?? []).map((c) => ({ ...c, updatedAt: ahora })),
+          updatedAt: ahora,
+        };
+        const next = merge(prev, entrante);
+        saveLocal(next);
+        if (supabaseEnabled) {
+          pending.current = next;
+          if (timer.current) clearTimeout(timer.current);
+          timer.current = setTimeout(() => void flush(), 600);
+        }
+        return next;
+      });
+    },
+    [flush],
+  );
 
   // Sesion de Supabase.
   useEffect(() => {
@@ -147,14 +196,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         } else {
           const remote = sanitize(row.data).data;
           setData((local) => {
-            // Gana el mas reciente; asi no se pisan cambios hechos sin conexion.
-            if (remote.updatedAt >= local.updatedAt) {
-              saveLocal(remote);
-              return remote;
+            // Se fusiona elemento a elemento: lo que hizo cada uno se conserva.
+            const fusionado = merge(local, remote);
+            saveLocal(fusionado);
+            // Si al fusionar aportamos algo que el servidor no tenia, lo subimos.
+            if (JSON.stringify(fusionado) !== JSON.stringify(remote)) {
+              pending.current = fusionado;
+              void flush();
             }
-            pending.current = local;
-            void flush();
-            return local;
+            return fusionado;
           });
           setSync('ok');
         }
@@ -168,10 +218,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const unsub = subscribeRemote((row) => {
       const remote = sanitize(row.data).data;
       setData((local) => {
-        if (remote.updatedAt <= local.updatedAt) return local;
+        const fusionado = merge(local, remote);
+        if (JSON.stringify(fusionado) === JSON.stringify(local)) return local;
         skipPush.current = true;
-        saveLocal(remote);
-        return remote;
+        saveLocal(fusionado);
+        return fusionado;
       });
     });
 
@@ -202,8 +253,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<StoreValue>(
-    () => ({ data, update, replaceAll, sync, syncError, email, signOut }),
-    [data, update, replaceAll, sync, syncError, email, signOut],
+    () => ({ data, update, replaceAll, mergeIn, sync, syncError, email, signOut }),
+    [data, update, replaceAll, mergeIn, sync, syncError, email, signOut],
   );
 
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;

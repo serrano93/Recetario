@@ -10,8 +10,9 @@ con horarios flexibles.
   compartida o una distinta para cada uno.
 - **Compra** — se calcula sola a partir de lo planificado: suma cantidades,
   las escala según cuánta gente coma y descuenta lo que ya hay en la despensa.
-- **Datos** — copia todo el recetario con instrucciones para dárselo a una IA,
-  y pega la respuesta para sobrescribirlo.
+- **Datos** — copia todo el recetario con instrucciones para dárselo a una IA, y
+  pega su respuesta para fusionarla o reemplazarlo. Con copias de seguridad y
+  deshacer.
 
 ## Los planes ("Javi come fuera", "Andrea de viaje")
 
@@ -27,16 +28,26 @@ del formato. Pégalo en el chat que uses y pide lo que quieras:
 
 > planifícame la semana con recetas rápidas, que el jueves ceno fuera
 
-Pega la respuesta en *Pegar y sobrescribir*. El JSON se valida antes de
-cargarse: lo que no se entiende se descarta y te avisa, en vez de romper la app.
-Acepta bloques ```` ```json ````, claves en español (`recetas`, `personas`,
-`ingredientes`...) e ingredientes escritos como texto suelto.
+Pega la respuesta y elige qué hacer con ella:
+
+- **Fusionar** (por defecto) — añade y actualiza solo lo que venga. La IA puede
+  devolver un trozo suelto, como `{"recipes": [...]}`, en vez del documento
+  entero: pedirle 40 KB de JSON completo es justo lo que hace que trunque o se
+  invente cosas.
+- **Reemplazar** — sustituye el recetario entero.
+
+Antes de cualquiera de las dos se guarda una copia, así que siempre hay
+**Deshacer**. El JSON se valida: lo que no se entiende se descarta y te avisa, en
+vez de romper la app. Acepta bloques ```` ```json ````, claves en español
+(`recetas`, `personas`, `ingredientes`...) e ingredientes escritos como texto
+suelto.
 
 ## Puesta en marcha
 
 ```bash
 npm install
 npm run dev
+npm test     # tests de la fusión, que es la parte delicada
 ```
 
 Sin más configuración la app ya funciona, guardando los datos en el navegador.
@@ -122,6 +133,8 @@ src/
     validate.ts     saneado de JSON de fuera; nunca lanza
     aiPrompt.ts     instrucciones que acompañan al export
     supabase.ts     sincronización opcional (carga perezosa)
+    merge.ts        fusión sin perder lo que hizo el otro (+ merge.test.ts)
+    snapshots.ts    copias locales para poder deshacer
   views/          las cuatro pestañas
   components/     modales y piezas compartidas
 ```
@@ -131,8 +144,20 @@ Notas de implementación:
 - **Escritura local primero.** Cada cambio se guarda en `localStorage` al
   instante y se sube a Supabase agrupado (600 ms), así la app responde igual sin
   cobertura y no se pierde nada al cerrar la pestaña.
-- **Conflictos.** Gana la copia con `updatedAt` más reciente. Para dos personas
-  es suficiente y evita fusiones raras a medias.
+- **Conflictos.** Se fusiona elemento a elemento (`src/lib/merge.ts`), no
+  documento entero: si Andrea tacha la compra en el súper mientras Javi edita una
+  receta, se conservan las dos cosas. Cada receta, comida y plan lleva su propio
+  `updatedAt`, y lo borrado deja lápida para que no resucite al sincronizar.
+  Los ajustes globales (tachados de la compra, despensa, nombres) sí son de quien
+  guardó el último, porque fusionarlos por unión impediría desmarcar nada.
+  Cubierto por tests: `npm test`.
+- **Sobras y batch cooking.** Media olla de lentejas no existe. Al planificar una
+  receta que da más raciones que comensales se puede elegir **tanda entera**: la
+  compra pide los ingredientes completos y las sobras se planifican solas en los
+  siguientes huecos libres, sin volver a contar en la lista.
+- **Funciona sin cobertura.** `public/sw.js` precachea el HTML y los ficheros que
+  este declara, así que la app abre en el súper sin señal. El HTML va
+  *network-first*, para que una versión nueva entre siempre que haya red.
 - **Supabase se carga con `import()` dinámico**: si no está configurado, el
   navegador no llega a descargar la librería.
 - **Tipografías auto-alojadas** en `public/fonts`: sin peticiones a terceros y

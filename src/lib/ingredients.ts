@@ -127,6 +127,9 @@ export function buildShoppingList(data: AppData, dates: string[]): ShoppingLine[
     const receta = recetaPorId.get(entry.recipeId);
     if (!receta) continue;
 
+    // Las sobras ya se compraron al cocinar la tanda: no suman otra vez.
+    if (entry.leftoverOf) continue;
+
     const clave = `${entry.date}|${entry.slot}`;
     let fuera = bloqueos.get(clave);
     if (!fuera) {
@@ -138,7 +141,9 @@ export function buildShoppingList(data: AppData, dates: string[]): ShoppingLine[
     const comensales = entry.people.filter((p) => !fuera.has(p)).length;
     if (comensales === 0) continue;
 
-    const factor = scaleFactor(receta, comensales);
+    // Cocinando la tanda entera se compra la receta completa: media olla de
+    // lentejas no existe, se hace la olla y sobra a proposito.
+    const factor = entry.batch ? 1 : scaleFactor(receta, comensales);
 
     for (const ing of receta.ingredients) {
       if (esBasico(ing, data.despensa)) continue;

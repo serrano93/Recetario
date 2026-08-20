@@ -4,6 +4,7 @@ import { SLOTS } from '../types';
 import { useStore } from '../store';
 import { dayName, dayNumber, monthName, rangeFrom, today } from '../lib/dates';
 import { blockedIn, coveredIn, dinersFor, entriesFor, entryLabel, eventsOn } from '../lib/plan';
+import { conLapidas, sellar } from '../lib/merge';
 import { MealSheet } from '../components/MealSheet';
 import { EventSheet } from '../components/EventSheet';
 import { IconCheck, IconPlane, IconPlus } from '../components/icons';
@@ -25,33 +26,46 @@ export function PlannerView() {
   const hoy = today();
   const fechas = useMemo(() => rangeFrom(hoy, dias), [hoy, dias]);
 
-  const guardarComida = (entry: PlanEntry) =>
-    update((prev) => ({
-      ...prev,
-      plan: prev.plan.some((e) => e.id === entry.id)
-        ? prev.plan.map((e) => (e.id === entry.id ? entry : e))
-        : [...prev.plan, entry],
-    }));
+  const guardarComida = (entry: PlanEntry, sobras: PlanEntry[] = []) =>
+    update((prev) => {
+      const sellada = sellar(entry);
+      const base = prev.plan.some((e) => e.id === entry.id)
+        ? prev.plan.map((e) => (e.id === entry.id ? sellada : e))
+        : [...prev.plan, sellada];
+      return { ...prev, plan: [...base, ...sobras.map(sellar)] };
+    });
 
   const borrarComida = (id: string) =>
-    update((prev) => ({ ...prev, plan: prev.plan.filter((e) => e.id !== id) }));
+    update((prev) => {
+      // Al quitar una tanda se van con ella sus sobras: sin la olla no hay tupper.
+      const fuera = prev.plan.filter((e) => e.id === id || e.leftoverOf === id).map((e) => e.id);
+      return {
+        ...prev,
+        plan: prev.plan.filter((e) => !fuera.includes(e.id)),
+        deleted: conLapidas(prev, fuera),
+      };
+    });
 
   const alternarHecho = (id: string) =>
     update((prev) => ({
       ...prev,
-      plan: prev.plan.map((e) => (e.id === id ? { ...e, done: !e.done } : e)),
+      plan: prev.plan.map((e) => (e.id === id ? sellar({ ...e, done: !e.done }) : e)),
     }));
 
   const guardarEvento = (ev: PlanEvent) =>
     update((prev) => ({
       ...prev,
       events: prev.events.some((x) => x.id === ev.id)
-        ? prev.events.map((x) => (x.id === ev.id ? ev : x))
-        : [...prev.events, ev],
+        ? prev.events.map((x) => (x.id === ev.id ? sellar(ev) : x))
+        : [...prev.events, sellar(ev)],
     }));
 
   const borrarEvento = (id: string) =>
-    update((prev) => ({ ...prev, events: prev.events.filter((e) => e.id !== id) }));
+    update((prev) => ({
+      ...prev,
+      events: prev.events.filter((e) => e.id !== id),
+      deleted: conLapidas(prev, [id]),
+    }));
 
   const persona = (id: string) => data.people.find((p) => p.id === id);
 
@@ -142,7 +156,15 @@ export function PlannerView() {
                           style={{ background: 'none', border: 0, padding: 0, textAlign: 'left' }}
                           onClick={() => setMeal({ mode: 'edit', date: fecha, slot, entry })}
                         >
-                          <div className="meal-name">{entryLabel(data, entry)}</div>
+                          <div className="meal-name">
+                            {entry.leftoverOf && <span className="tag">sobras</span>}{' '}
+                            {entryLabel(data, entry)}
+                          </div>
+                          {entry.batch && (
+                            <div className="tiny muted" style={{ marginTop: 2 }}>
+                              tanda entera
+                            </div>
+                          )}
                           {!compartida && (
                             <div className="row row-wrap" style={{ gap: 4, marginTop: 4 }}>
                               {entry.people.map((pid) => {

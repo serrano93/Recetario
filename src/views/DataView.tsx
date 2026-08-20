@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '../store';
 import { buildAiPrompt } from '../lib/aiPrompt';
-import { parseJsonLoose, sanitize } from '../lib/validate';
+import { parseJsonLoose, sanitize, sanitizePartial } from '../lib/validate';
 import { seedData } from '../lib/seed';
 import { supabaseEnabled } from '../lib/supabase';
+import { describeSnapshot, listSnapshots, timeAgo, type Snapshot } from '../lib/snapshots';
 import { IconCopy } from '../components/icons';
 
 /**
@@ -12,11 +13,13 @@ import { IconCopy } from '../components/icons';
  * Tambien vive aqui la configuracion: nombres, despensa y sesion.
  */
 export function DataView() {
-  const { data, replaceAll, update, email, signOut, sync, syncError } = useStore();
+  const { data, replaceAll, mergeIn, update, email, signOut, sync, syncError } = useStore();
   const [pegado, setPegado] = useState('');
+  const [modo, setModo] = useState<'fusionar' | 'sobrescribir'>('fusionar');
   const [aviso, setAviso] = useState<{ tipo: 'ok' | 'error'; texto: string; detalles?: string[] } | null>(null);
   const [copiado, setCopiado] = useState<string | null>(null);
   const [despensa, setDespensa] = useState(data.despensa.join(', '));
+  const [copias, setCopias] = useState<Snapshot[]>(listSnapshots);
 
   const json = useMemo(() => JSON.stringify(data, null, 2), [data]);
 
@@ -30,19 +33,45 @@ export function DataView() {
     }
   };
 
-  const sobrescribir = () => {
+  const aplicar = () => {
     const parsed = parseJsonLoose(pegado);
     if (!parsed.ok) {
       setAviso({ tipo: 'error', texto: `No he podido leer el JSON: ${parsed.error}` });
       return;
     }
+
+    if (modo === 'fusionar') {
+      const ids = new Set(data.people.map((p) => p.id));
+      const { patch, warnings, counts } = sanitizePartial(parsed.value, ids);
+      const partes = Object.entries(counts).map(([k, n]) => `${n} ${k}`);
+      if (partes.length === 0) {
+        setAviso({ tipo: 'error', texto: 'No he encontrado nada que fusionar.', detalles: warnings });
+        return;
+      }
+      mergeIn(patch);
+      setPegado('');
+      if (patch.despensa) setDespensa(patch.despensa.join(', '));
+      setCopias(listSnapshots());
+      setAviso({ tipo: 'ok', texto: `Fusionado: ${partes.join(', ')}.`, detalles: warnings });
+      return;
+    }
+
     const { data: limpio, warnings } = sanitize(parsed.value);
     const resumen = `${limpio.recipes.length} recetas, ${limpio.plan.length} comidas y ${limpio.events.length} planes.`;
-    if (!confirm(`Esto reemplaza TODO el recetario por ${resumen}\n\n¿Seguimos?`)) return;
+    if (!confirm(`Esto reemplaza TODO el recetario por ${resumen}\n\nSe guarda una copia para deshacer.\n\n¿Seguimos?`)) return;
     replaceAll(limpio);
     setPegado('');
     setDespensa(limpio.despensa.join(', '));
+    setCopias(listSnapshots());
     setAviso({ tipo: 'ok', texto: `Cargado: ${resumen}`, detalles: warnings });
+  };
+
+  const restaurar = (copia: Snapshot) => {
+    if (!confirm(`Volver a la copia de ${timeAgo(copia.at)} (${describeSnapshot(copia)})?`)) return;
+    replaceAll(copia.data, 'antes de restaurar');
+    setDespensa(copia.data.despensa.join(', '));
+    setCopias(listSnapshots());
+    setAviso({ tipo: 'ok', texto: `Restaurada la copia de ${timeAgo(copia.at)}.` });
   };
 
   const descargar = () => {
@@ -98,7 +127,7 @@ export function DataView() {
       </div>
 
       <div className="field">
-        <label>Pegar y sobrescribir</label>
+        <label>Pegar la respuesta</label>
         <textarea
           className="textarea code"
           placeholder="Pega aquí el JSON que te devuelva la IA..."
@@ -106,8 +135,21 @@ export function DataView() {
           onChange={(e) => setPegado(e.target.value)}
           spellCheck={false}
         />
-        <button className="btn btn-primary btn-block" onClick={sobrescribir} disabled={!pegado.trim()}>
-          Sobrescribir todo
+        <div className="segmented">
+          <button aria-pressed={modo === 'fusionar'} onClick={() => setModo('fusionar')}>
+            Fusionar
+          </button>
+          <button aria-pressed={modo === 'sobrescribir'} onClick={() => setModo('sobrescribir')}>
+            Reemplazar
+          </button>
+        </div>
+        <p className="tiny muted">
+          {modo === 'fusionar'
+            ? 'Añade y actualiza lo que venga, sin tocar el resto. Acepta trozos sueltos, como solo las recetas nuevas.'
+            : 'Reemplaza el recetario entero. Lo que no venga en el JSON se pierde.'}
+        </p>
+        <button className="btn btn-primary btn-block" onClick={aplicar} disabled={!pegado.trim()}>
+          {modo === 'fusionar' ? 'Fusionar con lo que hay' : 'Reemplazar todo el recetario'}
         </button>
       </div>
 
@@ -122,6 +164,36 @@ export function DataView() {
             </ul>
           )}
         </div>
+      )}
+
+      {copias.length > 0 && (
+        <>
+          <div className="section-title">
+            <span>Copias de seguridad</span>
+            <button className="btn btn-primary btn-sm" onClick={() => restaurar(copias[0])}>
+              Deshacer
+            </button>
+          </div>
+          <div className="card list">
+            {copias.map((c) => (
+              <div key={c.at} className="list-item">
+                <div className="grow">
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{timeAgo(c.at)}</div>
+                  <div className="tiny muted">
+                    {c.motivo} · {describeSnapshot(c)}
+                  </div>
+                </div>
+                <button className="btn btn-sm" onClick={() => restaurar(c)}>
+                  Restaurar
+                </button>
+              </div>
+            ))}
+          </div>
+          <p className="tiny muted">
+            Se guarda una copia antes de cada fusión o sobrescritura. Solo en este móvil: no se
+            sincronizan.
+          </p>
+        </>
       )}
 
       <div className="section-title">Estado actual</div>
