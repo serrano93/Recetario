@@ -54,7 +54,7 @@ Sin más configuración la app ya funciona, guardando los datos en el navegador.
 
 ## En producción
 
-- **App:** https://recetario-omega-five.vercel.app
+- **App:** https://recetitasamorosas.vercel.app
 - **Backend:** proyecto Supabase `recetario` (región `eu-west-1`).
 
 La rama de producción es `claude/hola-8ryaj0`: cada push despliega solo.
