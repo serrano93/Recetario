@@ -63,9 +63,11 @@ En el móvil, *Compartir → Añadir a pantalla de inicio* la instala como app
 (el manifest y los iconos ya están puestos).
 
 Ya están configurados: el esquema y sus políticas RLS, Realtime, el registro
-público **desactivado**, las URLs de redirección y las variables de entorno en
-Vercel. Lo único que queda por hacer a mano es **crear las dos cuentas** (ver
-abajo).
+público **desactivado**, las URLs de redirección, las variables de entorno en
+Vercel y las credenciales de Google Calendar.
+
+Queda por hacer a mano: **crear las dos cuentas** (ver abajo) y **publicar la app
+en Google Cloud** si sigue en estado "Prueba" (ver Google Calendar).
 
 ## Cómo funciona el acceso
 
