@@ -19,6 +19,15 @@ async function cabeceras(): Promise<HeadersInit> {
 
 async function pedir<T>(ruta: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(ruta, { ...init, headers: await cabeceras() });
+
+  // Sin backend (dev, preview) el catch-all de la SPA devuelve el index.html
+  // con un 200 tan tranquilo. Si no se comprueba el tipo, ese HTML se cuela
+  // como si fuera una respuesta buena y revienta mas adelante.
+  const tipo = res.headers.get('content-type') ?? '';
+  if (!tipo.includes('application/json')) {
+    throw new Error('El servidor no ha respondido (¿funciones desplegadas?).');
+  }
+
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((json as { error?: string }).error ?? `Error ${res.status}`);
   return json as T;
@@ -29,8 +38,14 @@ export interface EstadoGoogle {
   conectados: string[];
 }
 
-export function estadoGoogle(): Promise<EstadoGoogle> {
-  return pedir<EstadoGoogle>('/api/google/estado');
+export async function estadoGoogle(): Promise<EstadoGoogle> {
+  const r = await pedir<Partial<EstadoGoogle>>('/api/google/estado');
+  // Se normaliza en vez de confiar: un `conectados` que no sea array haria
+  // caer toda la pantalla de ajustes al recorrerlo.
+  return {
+    configurado: r.configurado === true,
+    conectados: Array.isArray(r.conectados) ? r.conectados : [],
+  };
 }
 
 /** Devuelve la URL de consentimiento; el navegador tiene que ir a ella. */

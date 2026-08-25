@@ -47,7 +47,8 @@ suelto.
 ```bash
 npm install
 npm run dev
-npm test     # tests de la fusión, que es la parte delicada
+npm test     # tests de la fusión y del mapeo de calendario
+npm run verify   # build + tests + comprobar que no se filtran secretos
 ```
 
 Sin más configuración la app ya funciona, guardando los datos en el navegador.
@@ -129,6 +130,56 @@ comprobar de un vistazo que eso sigue bien.
 Los secretos de servidor van en variables **sin** el prefijo `VITE_`, que es lo
 que las dejaría dentro del bundle público.
 
+## Google Calendar
+
+Sincroniza en las dos direcciones, y cada persona conecta su propia cuenta
+porque "quién no come en casa" es individual.
+
+**Leer.** Los eventos que afectan a una comida entran como planes marcados
+*calendario*. Se combinan dos señales: que el evento pise la franja de comer
+(13:00–16:00) o la de cenar (20:30–23:00), y palabras clave configurables. Lo
+demás se ignora a propósito: una reunión de las 10 o un cumpleaños no tienen
+nada que ver con si esa noche hay que cocinar.
+
+Si un plan importado sobra, el botón de borrar lo apunta como **ignorado** y no
+vuelve. Si lo editas a mano deja de ser de Google y ya no se refresca.
+
+> Cuidado al añadir palabras clave vagas. `fuera` parece buena idea hasta que
+> "comer fuera" te borra también la cena — pasó durante el desarrollo y lo pilló
+> un test.
+
+**Escribir.** Las comidas se publican en un calendario aparte llamado
+**Recetario**, que se puede ocultar sin ensuciar el principal. No se guarda el id
+de cada evento: en cada sincronización se compara el calendario con el plan y se
+crea, actualiza o borra lo que haga falta. Así no hay estado que se descuadre, y
+si alguien borra un evento a mano, la siguiente sincronización lo repone.
+
+**Sin bucles**, con dos cierres: el calendario "Recetario" se excluye siempre al
+leer, y además cada evento que crea la app lleva una marca en
+`extendedProperties` para reconocerlo aunque llegara a leerse.
+
+Sincroniza al abrir la app (como mucho cada 30 min) y una vez al día por cron.
+
+### Conectarlo (Google Cloud Console, ~5 min)
+
+1. Crea un proyecto y activa la **Google Calendar API**.
+2. Pantalla de consentimiento OAuth en modo **Externo → Prueba**, y añadíos los
+   dos como usuarios de prueba. Así no hace falta que Google verifique nada.
+3. **Credenciales → ID de cliente OAuth → Aplicación web**, con URI de
+   redirección `https://recetitasamorosas.vercel.app/api/google/callback`.
+4. En Vercel, **Settings → Environment Variables**:
+
+   ```
+   GOOGLE_CLIENT_ID=...
+   GOOGLE_CLIENT_SECRET=...
+   ```
+
+5. Vuelve a desplegar. En **Datos → Google Calendar** aparecerá el botón de
+   conectar para cada uno.
+
+Hasta que estén esas dos variables, la sección dice "sin configurar" y el resto
+de la app funciona igual.
+
 ## Cómo está montado
 
 Todo el estado es un único objeto JSON (`AppData` en `src/types.ts`). Es una
@@ -149,6 +200,14 @@ src/
     supabase.ts     sincronización opcional (carga perezosa)
     merge.ts        fusión sin perder lo que hizo el otro (+ merge.test.ts)
     snapshots.ts    copias locales para poder deshacer
+    calendar.ts     evento de Google -> plan (+ calendar.test.ts)
+    googleClient.ts llamadas a api/google desde el navegador
+api/
+  ping.ts         comprueba que las funciones responden
+  _lib/           supabase con service_role, y cliente de Google
+  google/         auth, callback, sync, estado, desconectar
+scripts/
+  verificar-secretos.mjs   que nada secreto acabe en dist/
   views/          las cuatro pestañas
   components/     modales y piezas compartidas
 ```
