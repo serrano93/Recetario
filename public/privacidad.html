@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacidad · Recetario</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root { color-scheme: light dark; --bg:#faf7f2; --fg:#2c2722; --muted:#7d746a; --accent:#c25a3a; --line:#e4ddd0; }
+      @media (prefers-color-scheme: dark) { :root { --bg:#191715; --fg:#ece7e0; --muted:#a09890; --accent:#e0805e; --line:#383430; } }
+      body { margin:0; background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+             line-height:1.6; padding:32px 20px 64px; }
+      main { max-width:640px; margin:0 auto; }
+      h1 { font-size:1.6rem; letter-spacing:-.02em; margin:0 0 4px; }
+      h2 { font-size:1.05rem; margin:32px 0 8px; }
+      .fecha { color:var(--muted); font-size:.85rem; margin:0 0 28px; }
+      ul { padding-left:20px; }
+      li { margin:6px 0; }
+      a { color:var(--accent); }
+      .caja { border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin:20px 0; }
+      footer { margin-top:40px; padding-top:16px; border-top:1px solid var(--line); font-size:.85rem; color:var(--muted); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Política de privacidad</h1>
+      <p class="fecha">Recetario · última actualización: 25 de agosto de 2026</p>
+
+      <p>
+        Recetario es una aplicación <strong>privada, de uso doméstico</strong>, hecha para dos
+        personas concretas para organizar sus comidas, su menú semanal y su lista de la compra.
+        No se ofrece al público, no tiene usuarios registrados más allá de sus dos dueños y no
+        hay ningún modelo de negocio detrás.
+      </p>
+
+      <h2>Qué datos se guardan</h2>
+      <ul>
+        <li>Las recetas, el menú planificado y la lista de la compra que escriben sus dueños.</li>
+        <li>Un nombre por persona (por ejemplo, «Andrea») para saber quién come qué.</li>
+        <li>Un correo interno de acceso, que sirve solo de identificador y nunca recibe correo.</li>
+      </ul>
+
+      <h2>Datos de Google Calendar</h2>
+      <p>
+        Si se conecta un calendario de Google, la aplicación pide permiso para leer eventos y para
+        crear eventos propios. Con ese acceso:
+      </p>
+      <ul>
+        <li>
+          <strong>Lee</strong> los eventos de los próximos 14 días, únicamente para deducir qué días
+          alguien no come en casa. De un evento solo se conserva su título, sus fechas y qué comida
+          afecta; el resto (invitados, ubicación, descripción, adjuntos) ni se guarda ni se procesa.
+        </li>
+        <li>
+          <strong>Escribe</strong>, si se activa esa opción, las comidas planificadas en un
+          calendario aparte llamado «Recetario». No modifica ningún otro calendario.
+        </li>
+      </ul>
+      <p>
+        Los datos de Google <strong>no se comparten con nadie</strong>, no se venden, no se usan
+        para publicidad y no se emplean para entrenar modelos de inteligencia artificial.
+      </p>
+
+      <h2>Dónde viven los datos</h2>
+      <p>
+        En una base de datos de <a href="https://supabase.com">Supabase</a> alojada en la Unión
+        Europea (Irlanda), y en el navegador de cada dueño para poder funcionar sin cobertura.
+        La aplicación se sirve desde <a href="https://vercel.com">Vercel</a>. Los permisos de acceso
+        a Google se guardan cifrados en el servidor y nunca se envían al navegador.
+      </p>
+
+      <h2>Cuánto tiempo</h2>
+      <p>
+        Mientras sus dueños quieran. Al desconectar un calendario desde la propia aplicación, el
+        permiso de Google se borra en ese momento. También se puede retirar en cualquier momento
+        desde <a href="https://myaccount.google.com/permissions">la cuenta de Google</a>.
+      </p>
+
+      <div class="caja">
+        <strong>Sin terceros.</strong> No hay analítica, ni cookies de seguimiento, ni anuncios, ni
+        integraciones con redes sociales.
+      </div>
+
+      <h2>Contacto</h2>
+      <p>Escribe a <a href="mailto:serrano1993@gmail.com">serrano1993@gmail.com</a>.</p>
+
+      <footer><a href="/">← Volver a Recetario</a> · <a href="/terminos.html">Condiciones de uso</a></footer>
+    </main>
+  </body>
+</html>
