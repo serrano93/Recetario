@@ -236,11 +236,11 @@ Qué entiende:
 
 | Dices | Hace |
 |---|---|
-| *«Alexa, pregunta a recetario qué cenamos hoy»* | Lee el plan de ese día |
-| *«Alexa, dile a recetario que apunte tomates»* | Lo añade a la compra |
-| *«Alexa, pregunta a recetario qué lleva las lentejas»* | Enumera los ingredientes |
-| *«Alexa, pregunta a recetario cómo se hacen las lentejas»* | Los pasos, uno a uno; di «siguiente» |
-| *«Alexa, dile a recetario que Andrea come fuera mañana»* | Crea el plan y recalcula la compra |
+| *«Alexa, pregunta a recetitas amorosas qué cenamos hoy»* | Lee el plan de ese día |
+| *«Alexa, dile a recetitas amorosas que apunte tomates»* | Lo añade a la compra |
+| *«Alexa, pregunta a recetitas amorosas qué lleva las lentejas»* | Enumera los ingredientes |
+| *«Alexa, pregunta a recetitas amorosas cómo se hacen las lentejas»* | Los pasos, uno a uno; di «siguiente» |
+| *«Alexa, dile a recetitas amorosas que Andrea come fuera mañana»* | Crea el plan y recalcula la compra |
 
 Si no dices si es comida o cena, se deduce de la hora: antes de las cuatro,
 comida; después, cena. Preguntar «¿comida o cena?» a las nueve de la noche sería
@@ -264,6 +264,11 @@ de robot.
 1. [developer.amazon.com/alexa/console/ask](https://developer.amazon.com/alexa/console/ask)
    → **Crear Skill**. Nombre: Recetario. Idioma: **Español (ES)**.
    Modelo: **Custom**. Alojamiento: **Provision your own**.
+> El nombre de invocación es **recetitas amorosas**, de dos palabras y a
+> propósito. Con «recetario» a secas, Alexa+ lo confunde con su propia función
+> de recetas y contesta «tu biblioteca de cocina está vacía» sin llegar a
+> llamar a la skill.
+
 2. En **Build → JSON Editor**, pega el contenido de
    [`alexa/modelo-interaccion.json`](alexa/modelo-interaccion.json) y guarda.
    Luego **Build Model**.

@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "recetario",
+      "invocationName": "recetitas amorosas",
       "modelConfiguration": { "fallbackIntentSensitivity": { "level": "LOW" } },
       "intents": [
         { "name": "AMAZON.CancelIntent", "samples": [] },
