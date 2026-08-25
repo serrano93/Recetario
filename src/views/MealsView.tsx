@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
-import type { PlanEntry, Recipe, Slot } from '../types.js';
+import type { PersonId, PlanEntry, Recipe, Slot } from '../types.js';
 import { useStore } from '../store.js';
 import { normalize } from '../lib/ingredients.js';
 import { conLapidas, sellar } from '../lib/merge.js';
 import { RecipeSheet } from '../components/RecipeSheet.js';
 import { RecipeBuilder } from '../components/RecipeBuilder.js';
+import { Estrellas } from '../components/Estrellas.js';
+import { conValoracion, mediaDe } from '../lib/valoracion.js';
 import { RecipeDetail } from '../components/RecipeDetail.js';
 import { IconChef, IconClock, IconPlus, IconStar } from '../components/icons.js';
 import { newId } from '../lib/validate.js';
@@ -41,6 +43,10 @@ export function MealsView() {
       })
       .sort((a, b) => {
         if (!!b.favorite !== !!a.favorite) return b.favorite ? 1 : -1;
+        // Las valoradas suben; entre las que nadie ha valorado, alfabetico.
+        const na = mediaDe(a);
+        const nb = mediaDe(b);
+        if (na !== nb) return (nb ?? 0) - (na ?? 0);
         return a.name.localeCompare(b.name, 'es');
       });
   }, [data.recipes, q, filtro]);
@@ -70,6 +76,12 @@ export function MealsView() {
     update((prev) => ({
       ...prev,
       recipes: prev.recipes.map((r) => (r.id === id ? sellar({ ...r, favorite: !r.favorite }) : r)),
+    }));
+
+  const valorar = (id: string, persona: PersonId, valor: number) =>
+    update((prev) => ({
+      ...prev,
+      recipes: prev.recipes.map((r) => (r.id === id ? sellar(conValoracion(r, persona, valor)) : r)),
     }));
 
   const planificar = (entry: PlanEntry) =>
@@ -122,6 +134,7 @@ export function MealsView() {
                   </span>
                 )}
                 <span>{r.ingredients.length} ingredientes</span>
+                {mediaDe(r) !== null && <Estrellas valor={mediaDe(r)!} />}
                 {r.tags.slice(0, 2).map((t) => (
                   <span key={t} className="tag">
                     {t}
@@ -170,6 +183,7 @@ export function MealsView() {
           recipe={data.recipes.find((r) => r.id === detalle.id) ?? detalle}
           onEdit={() => setEditando({ recipe: detalle })}
           onToggleFavorite={() => alternarFavorita(detalle.id)}
+          onRate={(persona, valor) => valorar(detalle.id, persona, valor)}
           onPlan={planificar}
           onClose={() => setDetalle(null)}
         />

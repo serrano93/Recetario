@@ -967,3 +967,77 @@ select {
   color: var(--accent);
   border: 1px solid var(--border);
 }
+
+/* ---------------------------------------------------------------
+   Valoraciones
+   --------------------------------------------------------------- */
+
+.estrellas {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: #e0a13a;
+  line-height: 0;
+}
+
+.estrellas .estrella {
+  flex: none;
+}
+
+/* Las dos mitades van encima del dibujo, invisibles. El area de toque de cada
+   una es la mitad del ancho, que con 30 px se queda justo pero acertable. */
+.estrella-hueco {
+  position: relative;
+  display: inline-block;
+  flex: none;
+}
+
+.estrellas-editables {
+  gap: 3px;
+}
+
+.mitad {
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  width: 50%;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+
+.mitad-izq {
+  left: 0;
+}
+
+.mitad-der {
+  right: 0;
+}
+
+/* Fila de "Javi ★★★★☆" dentro de la ficha. */
+.valoracion-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.valoracion-fila:last-child {
+  border-bottom: 0;
+}
+
+.valoracion-fila .quien {
+  flex: 1;
+  min-width: 0;
+  font-weight: 650;
+  font-size: 0.88rem;
+}
+
+.valoracion-fila .nota {
+  width: 2.2em;
+  text-align: right;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}

@@ -7,6 +7,8 @@ import { IconClock, IconEdit, IconStar } from './icons.js';
 import { dayName, dayNumber, rangeFrom, today } from '../lib/dates.js';
 import { esBasico, formatQty, normalize } from '../lib/ingredients.js';
 import { macrosDeReceta, redondearAporte } from '../lib/nutricion.js';
+import { EstrellasEditables } from './Estrellas.js';
+import { textoValor, valorDe } from '../lib/valoracion.js';
 import { newId } from '../lib/validate.js';
 
 /** Ficha de la receta: que lleva, como se hace y accesos para editar o planificar. */
@@ -15,6 +17,7 @@ export function RecipeDetail({
   recipe,
   onEdit,
   onToggleFavorite,
+  onRate,
   onPlan,
   onClose,
 }: {
@@ -22,6 +25,7 @@ export function RecipeDetail({
   recipe: Recipe;
   onEdit: () => void;
   onToggleFavorite: () => void;
+  onRate: (persona: PersonId, valor: number) => void;
   onPlan: (entry: PlanEntry) => void;
   onClose: () => void;
 }) {
@@ -85,6 +89,30 @@ export function RecipeDetail({
             {t}
           </span>
         ))}
+      </div>
+
+      <div>
+        <div className="section-title" style={{ marginBottom: 2 }}>
+          Qué os pareció
+        </div>
+        <div className="card" style={{ padding: '2px 14px' }}>
+          {data.people.map((p) => {
+            const valor = valorDe(recipe, p.id);
+            return (
+              <div key={p.id} className="valoracion-fila">
+                <span className="quien" style={{ color: p.color }}>
+                  {p.name}
+                </span>
+                <EstrellasEditables
+                  valor={valor}
+                  etiqueta={`Valoración de ${p.name}`}
+                  onChange={(v) => onRate(p.id, v)}
+                />
+                <span className="nota">{valor > 0 ? textoValor(valor) : '—'}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {macros && macros.kcal > 0 && (

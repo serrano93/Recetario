@@ -90,6 +90,22 @@ function parseIngredient(v: unknown): Ingredient | null {
   return ing;
 }
 
+/**
+ * Valoraciones: solo de gente que existe, y en medias estrellas de 0 a 5.
+ * Un JSON de fuera puede traer 7, "muy buena" o a un tercero.
+ */
+function parseRatings(v: unknown, peopleIds: Set<string>): Record<string, number> | undefined {
+  if (!isRecord(v)) return undefined;
+  const out: Record<string, number> = {};
+  for (const [id, valor] of Object.entries(v)) {
+    if (!peopleIds.has(id)) continue;
+    const n = asNumber(valor);
+    if (n === undefined || n < 0) continue;
+    out[id] = Math.min(5, Math.round(n * 2) / 2);
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
 function parsePerson(v: unknown, i: number): Person | null {
   if (!isRecord(v)) return null;
   const name = asString(v.name ?? v.nombre).trim();
@@ -101,7 +117,7 @@ function parsePerson(v: unknown, i: number): Person | null {
   };
 }
 
-function parseRecipe(v: unknown): Recipe | null {
+function parseRecipe(v: unknown, peopleIds: Set<string>): Recipe | null {
   if (!isRecord(v)) return null;
   const name = asString(v.name ?? v.nombre).trim();
   if (!name) return null;
@@ -120,6 +136,7 @@ function parseRecipe(v: unknown): Recipe | null {
     notes: asString(v.notes ?? v.notas) || undefined,
     fits: asSlots(v.fits ?? v.encaja),
     favorite: v.favorite === true || v.favorita === true ? true : undefined,
+    ratings: parseRatings(v.ratings ?? v.valoraciones, peopleIds),
     updatedAt: asString(v.updatedAt) || undefined,
   };
 }
@@ -255,7 +272,7 @@ export function sanitize(input: unknown): ValidationResult {
   const peopleIds = new Set(people.map((p) => p.id));
 
   const recipesRaw = asArray(raw.recipes ?? raw.recetas);
-  const recipes = recipesRaw.map(parseRecipe).filter((x): x is Recipe => x !== null);
+  const recipes = recipesRaw.map((v) => parseRecipe(v, peopleIds)).filter((x): x is Recipe => x !== null);
   if (recipes.length < recipesRaw.length) {
     warnings.push(`Se descartaron ${recipesRaw.length - recipes.length} recetas sin nombre.`);
   }
@@ -332,7 +349,9 @@ export function sanitizePartial(
 
   const recipesRaw = input.recipes ?? input.recetas;
   if (recipesRaw !== undefined) {
-    const recipes = asArray(recipesRaw).map(parseRecipe).filter((x): x is Recipe => x !== null);
+    const recipes = asArray(recipesRaw)
+      .map((v) => parseRecipe(v, peopleIds))
+      .filter((x): x is Recipe => x !== null);
     if (recipes.length < asArray(recipesRaw).length) {
       warnings.push(`Se descartaron ${asArray(recipesRaw).length - recipes.length} recetas sin nombre.`);
     }

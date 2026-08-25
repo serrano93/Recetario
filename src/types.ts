@@ -51,6 +51,14 @@ export interface Recipe {
   fits: Slot[];
   /** Marcada como favorita, sale primero en el listado. */
   favorite?: boolean;
+  /**
+   * Lo que le pone cada uno, de 0,5 a 5 en medias estrellas.
+   *
+   * Un 0 no es "no valorada": es "la quito a proposito". Hace falta poder
+   * distinguirlo, porque al fusionar con el otro movil una clave que
+   * desaparece y una clave puesta a cero se resuelven al reves.
+   */
+  ratings?: Record<PersonId, number>;
   /** Ultima vez que se toco. Lo usa la fusion para saber que version gana. */
   updatedAt?: string;
 }

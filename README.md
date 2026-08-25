@@ -22,6 +22,22 @@ rango de fechas y a quién afecta. Si marcas *comida* o *cena*, esas personas
 dejan de contar: el calendario deja de pedirte que cocines para ellas y **la
 lista de la compra no compra su parte**.
 
+## Valoraciones
+
+En la ficha de cada receta, **Javi y Andrea puntúan por separado** de 0,5 a 5
+estrellas. Cada estrella tiene dos mitades: la izquierda pone media y la derecha
+entera. Tocar el valor que ya está puesto lo quita.
+
+Se guardan por persona a propósito. Que a uno le encanten las lentejas y al otro
+no es información útil, y promediarla a 3 la perdería: la media solo se usa para
+enseñarla en la lista y para que las mejor valoradas suban al principio.
+
+**Quitar una valoración guarda un 0, no borra la clave.** Al fusionar con el otro
+móvil, una clave que falta se rellena con lo que tuviera el otro lado — así que
+borrarla sin más haría que la valoración volviera sola en la siguiente
+sincronización. Las valoraciones también se unen persona a persona al fusionar
+(`src/lib/merge.ts`), para que valorar los dos a la vez no pise una de las dos.
+
 ## El constructor de recetas
 
 El botón del gorro de cocinero (encima del **+**, en Comidas) abre un asistente:
@@ -340,6 +356,7 @@ src/
     aiPrompt.ts     instrucciones que acompañan al export
     supabase.ts     sincronización opcional (carga perezosa)
     merge.ts        fusión sin perder lo que hizo el otro (+ merge.test.ts)
+    valoracion.ts   estrellas por persona y media (+ tests)
     snapshots.ts    copias locales para poder deshacer
     calendar.ts     evento de Google -> plan (+ calendar.test.ts)
     alexa.ts        lo que la skill entiende y contesta (+ tests)

@@ -41,7 +41,12 @@ export interface Alimento {
   rinde: number;
   /** Unidad con la que se escribe en la receta. */
   unidad: 'g' | 'ml' | 'ud';
-  /** Si se mide en unidades, cuanto pesa cada una. */
+  /**
+   * Lo que pesa una pieza.
+   *
+   * No decide como se escribe la receta, sino como se LEE: sin esto, "2
+   * cebollas" no se puede pasar a gramos y la receta se queda sin calorias.
+   */
   gramosPorUnidad?: number;
   /** Otras formas de llamarlo, para reconocerlo en recetas ya escritas. */
   sinonimos?: string[];
@@ -57,34 +62,34 @@ export interface Alimento {
 /* --- Proteinas ----------------------------------------------------------- */
 
 const PROTEINAS: Alimento[] = [
-  { nombre: 'contramuslo de pollo', categoria: 'proteina', unidad: 'g', rinde: 0.75,
+  { nombre: 'contramuslo de pollo', categoria: 'proteina', unidad: 'g', rinde: 0.75, gramosPorUnidad: 90,
     macros: { kcal: 120, prot: 19.5, hc: 0, grasa: 4.5 },
     sinonimos: ['contramuslos de pollo', 'muslo de pollo', 'jamoncitos de pollo'] },
-  { nombre: 'pechuga de pollo', categoria: 'proteina', unidad: 'g', rinde: 0.75,
+  { nombre: 'pechuga de pollo', categoria: 'proteina', unidad: 'g', rinde: 0.75, gramosPorUnidad: 180,
     macros: { kcal: 110, prot: 23, hc: 0, grasa: 1.8 },
     sinonimos: ['pollo', 'filetes de pollo'] },
-  { nombre: 'lomo de cerdo', categoria: 'proteina', unidad: 'g', rinde: 0.72,
+  { nombre: 'lomo de cerdo', categoria: 'proteina', unidad: 'g', rinde: 0.72, gramosPorUnidad: 120,
     macros: { kcal: 143, prot: 21, hc: 0, grasa: 6 },
     sinonimos: ['cinta de lomo', 'cerdo', 'solomillo de cerdo'] },
   { nombre: 'carne picada', categoria: 'proteina', unidad: 'g', rinde: 0.7,
     macros: { kcal: 200, prot: 18.5, hc: 0, grasa: 14 },
     sinonimos: ['carne picada mixta', 'picada'] },
-  { nombre: 'ternera', categoria: 'proteina', unidad: 'g', rinde: 0.72,
+  { nombre: 'ternera', categoria: 'proteina', unidad: 'g', rinde: 0.72, gramosPorUnidad: 150,
     macros: { kcal: 135, prot: 21.5, hc: 0, grasa: 5.5 },
     sinonimos: ['filete de ternera', 'vaca', 'redondo de ternera'] },
-  { nombre: 'pavo', categoria: 'proteina', unidad: 'g', rinde: 0.73,
+  { nombre: 'pavo', categoria: 'proteina', unidad: 'g', rinde: 0.73, gramosPorUnidad: 150,
     macros: { kcal: 110, prot: 22, hc: 0, grasa: 2 },
     sinonimos: ['pechuga de pavo', 'filetes de pavo'] },
-  { nombre: 'salmón', categoria: 'proteina', unidad: 'g', rinde: 0.8,
+  { nombre: 'salmón', categoria: 'proteina', unidad: 'g', rinde: 0.8, gramosPorUnidad: 140,
     macros: { kcal: 208, prot: 20, hc: 0, grasa: 13.5 },
     sinonimos: ['lomo de salmón'] },
-  { nombre: 'atún', categoria: 'proteina', unidad: 'g', rinde: 0.78,
+  { nombre: 'atún', categoria: 'proteina', unidad: 'g', rinde: 0.78, gramosPorUnidad: 150,
     macros: { kcal: 130, prot: 23.5, hc: 0, grasa: 4 },
     sinonimos: ['lomo de atún', 'tataki de atún'] },
-  { nombre: 'atún en lata', categoria: 'proteina', unidad: 'g', rinde: 1,
+  { nombre: 'atún en lata', categoria: 'proteina', unidad: 'g', rinde: 1, gramosPorUnidad: 56,
     macros: { kcal: 108, prot: 24, hc: 0, grasa: 1 },
     sinonimos: ['atún al natural', 'atún de lata', 'latas de atún'] },
-  { nombre: 'merluza', categoria: 'proteina', unidad: 'g', rinde: 0.8,
+  { nombre: 'merluza', categoria: 'proteina', unidad: 'g', rinde: 0.8, gramosPorUnidad: 140,
     macros: { kcal: 72, prot: 16, hc: 0, grasa: 0.8 },
     sinonimos: ['lomos de merluza', 'bacalao', 'pescado blanco'] },
   { nombre: 'gambas', categoria: 'proteina', unidad: 'g', rinde: 0.85,
@@ -96,7 +101,19 @@ const PROTEINAS: Alimento[] = [
   { nombre: 'soja texturizada', categoria: 'proteina', unidad: 'g', rinde: 2.5,
     macros: { kcal: 340, prot: 50, hc: 30, grasa: 1.5 },
     sinonimos: ['proteína de soja', 'soja texturizada fina'] },
-  { nombre: 'tofu', categoria: 'proteina', unidad: 'g', rinde: 0.95,
+  { nombre: 'lentejas', categoria: 'proteina', unidad: 'g', rinde: 2.4,
+    macros: { kcal: 336, prot: 24, hc: 60, grasa: 1 },
+    sinonimos: ['lentejas secas', 'lenteja pardina'] },
+  { nombre: 'lentejas cocidas', categoria: 'proteina', unidad: 'g', rinde: 1,
+    macros: { kcal: 116, prot: 9, hc: 20, grasa: 0.4 },
+    sinonimos: ['lentejas de bote'] },
+  { nombre: 'garbanzos cocidos', categoria: 'proteina', unidad: 'g', rinde: 1,
+    macros: { kcal: 140, prot: 8, hc: 21, grasa: 2.6 },
+    sinonimos: ['garbanzos', 'garbanzos de bote'] },
+  { nombre: 'alubias cocidas', categoria: 'proteina', unidad: 'g', rinde: 1,
+    macros: { kcal: 125, prot: 8, hc: 19, grasa: 0.5 },
+    sinonimos: ['judías blancas', 'alubias'] },
+  { nombre: 'tofu', categoria: 'proteina', unidad: 'g', rinde: 0.95, gramosPorUnidad: 250,
     macros: { kcal: 130, prot: 14, hc: 2, grasa: 7.5 },
     sinonimos: ['tofu firme'] },
 ];
@@ -113,6 +130,8 @@ function verdura(
   hc: number,
   grasa: number,
   sinonimos?: string[],
+  /** Lo que pesa una pieza, para entender "2 cebollas". */
+  gramosPorUnidad?: number,
 ): Alimento {
   return {
     nombre,
@@ -121,45 +140,46 @@ function verdura(
     rinde: RINDE_VERDURA,
     macros: { kcal, prot, hc, grasa },
     sinonimos,
+    gramosPorUnidad,
   };
 }
 
 const VERDURAS: Alimento[] = [
-  verdura('cebolla', 40, 1.1, 9, 0.1, ['cebollas']),
-  verdura('cebolla morada', 40, 1.1, 9, 0.1),
-  verdura('puerro', 61, 1.5, 14, 0.3, ['puerros']),
-  verdura('tomate', 18, 0.9, 3.9, 0.2, ['tomates', 'tomate pera']),
-  verdura('tomate cherry', 18, 0.9, 3.9, 0.2, ['tomates cherry']),
-  verdura('pimiento rojo', 31, 1, 6, 0.3, ['pimientos rojos']),
-  verdura('pimiento verde', 20, 0.9, 4.6, 0.2, ['pimientos verdes', 'pimiento italiano']),
-  verdura('calabacín', 17, 1.2, 3.1, 0.3, ['calabacines']),
-  verdura('berenjena', 25, 1, 6, 0.2, ['berenjenas']),
-  verdura('brócoli', 34, 2.8, 7, 0.4, ['brocoli', 'ramilletes de brócoli']),
-  verdura('coliflor', 25, 1.9, 5, 0.3),
+  verdura('cebolla', 40, 1.1, 9, 0.1, ['cebollas'], 150),
+  verdura('cebolla morada', 40, 1.1, 9, 0.1, undefined, 150),
+  verdura('puerro', 61, 1.5, 14, 0.3, ['puerros'], 120),
+  verdura('tomate', 18, 0.9, 3.9, 0.2, ['tomates', 'tomate pera'], 130),
+  verdura('tomate cherry', 18, 0.9, 3.9, 0.2, ['tomates cherry'], 10),
+  verdura('pimiento rojo', 31, 1, 6, 0.3, ['pimientos rojos'], 160),
+  verdura('pimiento verde', 20, 0.9, 4.6, 0.2, ['pimientos verdes', 'pimiento italiano'], 140),
+  verdura('calabacín', 17, 1.2, 3.1, 0.3, ['calabacines'], 250),
+  verdura('berenjena', 25, 1, 6, 0.2, ['berenjenas'], 250),
+  verdura('brócoli', 34, 2.8, 7, 0.4, ['brocoli', 'ramilletes de brócoli'], 400),
+  verdura('coliflor', 25, 1.9, 5, 0.3, undefined, 700),
   verdura('judías verdes', 31, 1.8, 7, 0.1, ['judia verde', 'vainas']),
   verdura('espinacas', 23, 2.9, 3.6, 0.4, ['espinaca', 'espinacas frescas']),
   verdura('acelgas', 19, 1.8, 3.7, 0.2),
   verdura('kale', 49, 4.3, 9, 0.9, ['col rizada']),
-  verdura('zanahoria', 41, 0.9, 10, 0.2, ['zanahorias']),
+  verdura('zanahoria', 41, 0.9, 10, 0.2, ['zanahorias'], 80),
   verdura('guisantes', 81, 5.4, 14, 0.4),
   verdura('champiñones', 22, 3.1, 3.3, 0.3, ['champiñón', 'champiñones laminados']),
   verdura('setas', 28, 2.5, 5, 0.3, ['setas variadas', 'shiitake', 'níscalos']),
   verdura('calabaza', 26, 1, 6.5, 0.1),
-  verdura('alcachofas', 47, 3.3, 11, 0.2, ['alcachofa', 'corazones de alcachofa']),
+  verdura('alcachofas', 47, 3.3, 11, 0.2, ['alcachofa', 'corazones de alcachofa'], 100),
   verdura('espárragos verdes', 20, 2.2, 3.9, 0.1, ['espárragos', 'trigueros', 'esparragos trigueros']),
-  verdura('lechuga', 15, 1.4, 2.9, 0.2, ['cogollos', 'lechuga romana']),
+  verdura('lechuga', 15, 1.4, 2.9, 0.2, ['cogollos', 'lechuga romana'], 300),
   verdura('canónigos', 21, 2, 3.6, 0.4),
   verdura('rúcula', 25, 2.6, 3.7, 0.7),
-  verdura('escarola', 17, 1.3, 3.4, 0.2, ['endivias']),
-  verdura('pepino', 15, 0.7, 3.6, 0.1, ['pepinos']),
+  verdura('escarola', 17, 1.3, 3.4, 0.2, ['endivias'], 300),
+  verdura('pepino', 15, 0.7, 3.6, 0.1, ['pepinos'], 300),
   verdura('apio', 16, 0.7, 3, 0.2),
-  verdura('repollo', 25, 1.3, 5.8, 0.1, ['col', 'col blanca', 'lombarda']),
+  verdura('repollo', 25, 1.3, 5.8, 0.1, ['col', 'col blanca', 'lombarda'], 800),
   verdura('coles de Bruselas', 43, 3.4, 9, 0.3),
-  verdura('maíz', 86, 3.3, 19, 1.2, ['maíz dulce']),
-  verdura('remolacha', 43, 1.6, 10, 0.2),
-  verdura('nabo', 28, 0.9, 6.4, 0.1),
-  verdura('hinojo', 31, 1.2, 7.3, 0.2),
-  verdura('pimientos del piquillo', 30, 1.2, 5.5, 0.3, ['piquillos']),
+  verdura('maíz', 86, 3.3, 19, 1.2, ['maíz dulce'], 140),
+  verdura('remolacha', 43, 1.6, 10, 0.2, undefined, 130),
+  verdura('nabo', 28, 0.9, 6.4, 0.1, undefined, 120),
+  verdura('hinojo', 31, 1.2, 7.3, 0.2, undefined, 250),
+  verdura('pimientos del piquillo', 30, 1.2, 5.5, 0.3, ['piquillos'], 25),
 ];
 
 /* --- Hidratos ------------------------------------------------------------ */
@@ -174,10 +194,10 @@ const HIDRATOS: Alimento[] = [
   { nombre: 'fideos de arroz', categoria: 'hidrato', unidad: 'g', rinde: 2.6,
     macros: { kcal: 360, prot: 6, hc: 82, grasa: 0.6 },
     sinonimos: ['noodles de arroz', 'fideos'] },
-  { nombre: 'patata', categoria: 'hidrato', unidad: 'g', rinde: 0.95,
+  { nombre: 'patata', categoria: 'hidrato', unidad: 'g', rinde: 0.95, gramosPorUnidad: 180,
     macros: { kcal: 77, prot: 2, hc: 17, grasa: 0.1 },
     sinonimos: ['patatas'] },
-  { nombre: 'boniato', categoria: 'hidrato', unidad: 'g', rinde: 0.95,
+  { nombre: 'boniato', categoria: 'hidrato', unidad: 'g', rinde: 0.95, gramosPorUnidad: 200,
     macros: { kcal: 86, prot: 1.6, hc: 20, grasa: 0.1 },
     sinonimos: ['batata'] },
   { nombre: 'ñoquis', categoria: 'hidrato', unidad: 'g', rinde: 1,
@@ -277,6 +297,12 @@ const EXTRAS: Alimento[] = [
     macros: { kcal: 559, prot: 30, hc: 11, grasa: 49 } },
   { nombre: 'cebolla crujiente', categoria: 'extra', unidad: 'g', rinde: 1, racion: 10,
     macros: { kcal: 500, prot: 6, hc: 40, grasa: 34 } },
+  { nombre: 'chorizo', categoria: 'extra', unidad: 'g', rinde: 0.85, racion: 40, gramosPorUnidad: 60,
+    macros: { kcal: 350, prot: 20, hc: 2, grasa: 30 },
+    sinonimos: ['chorizo picante', 'panceta', 'bacon'] },
+  { nombre: 'limón', categoria: 'extra', unidad: 'ud', rinde: 1, racion: 50, gramosPorUnidad: 100,
+    macros: { kcal: 29, prot: 1.1, hc: 9, grasa: 0.3 },
+    sinonimos: ['lima'] },
   { nombre: 'pan rallado', categoria: 'extra', unidad: 'g', rinde: 1, racion: 25,
     macros: { kcal: 350, prot: 12, hc: 68, grasa: 4 },
     sinonimos: ['panko'] },
@@ -290,7 +316,7 @@ const EXTRAS: Alimento[] = [
  */
 const ALINOS: Alimento[] = [
   'ajo',
-  'pimentón dulce',
+  'pimentón dulce',  // ver SINONIMOS_ALINO
   'pimentón picante',
   'comino',
   'curry en polvo',
@@ -323,6 +349,17 @@ const ALINOS: Alimento[] = [
   basico: true,
   macros: { kcal: 0, prot: 0, hc: 0, grasa: 0 },
 }));
+
+/** Como se escriben de verdad algunos aliños en las recetas. */
+const SINONIMOS_ALINO: Record<string, string[]> = {
+  'pimentón dulce': ['pimentón', 'paprika'],
+  'ajo': ['ajos', 'dientes de ajo', 'ajo picado'],
+  'zumo de limón': ['limón exprimido'],
+};
+
+for (const a of ALINOS) {
+  if (Object.hasOwn(SINONIMOS_ALINO, a.nombre)) a.sinonimos = SINONIMOS_ALINO[a.nombre];
+}
 
 /* --- Grasas de cocinado -------------------------------------------------- */
 

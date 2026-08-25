@@ -137,3 +137,37 @@ describe('merge', () => {
     expect(out.recipes).toHaveLength(2);
   });
 });
+
+describe('ajustes de integraciones', () => {
+  const conGoogle = (updatedAt: string, ignorados: string[], horaCena: string): AppData => ({
+    ...base({ updatedAt }),
+    integraciones: {
+      google: {
+        leer: true,
+        escribir: false,
+        horaComida: '14:00',
+        horaCena,
+        reglas: { todoElDia: [], bloqueaComida: [], bloqueaCena: [] },
+        ignorados,
+      },
+    },
+  });
+
+  it('sobreviven a la fusion', () => {
+    // Antes se caian enteros aqui, o sea en cada carga de la app.
+    const salida = merge(conGoogle('2026-01-01T00:00:00Z', [], '21:00'), base({ updatedAt: '2026-01-02T00:00:00Z' }));
+    expect(salida.integraciones?.google?.horaCena).toBe('21:00');
+  });
+
+  it('manda el que guardo el ultimo', () => {
+    const viejo = conGoogle('2026-01-01T00:00:00Z', [], '21:00');
+    const nuevo = conGoogle('2026-01-02T00:00:00Z', [], '22:30');
+    expect(merge(viejo, nuevo).integraciones?.google?.horaCena).toBe('22:30');
+  });
+
+  it('los eventos ignorados se unen: uno echado no vuelve', () => {
+    const suyo = conGoogle('2026-01-02T00:00:00Z', ['ev_a'], '21:00');
+    const deElla = conGoogle('2026-01-01T00:00:00Z', ['ev_b'], '21:00');
+    expect(merge(suyo, deElla).integraciones?.google?.ignorados.sort()).toEqual(['ev_a', 'ev_b']);
+  });
+});

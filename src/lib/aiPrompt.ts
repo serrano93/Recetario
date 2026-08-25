@@ -34,6 +34,9 @@ REGLAS DEL FORMATO
 - Las cantidades de carne, pescado, arroz y pasta van EN CRUDO.
 - De referencia, un plato de comida es mas o menos mitad proteina, un cuarto
   verdura y un cuarto hidrato; una cena, mitad verdura y un cuarto de cada.
+- "ratings" es lo que le pone cada uno a la receta, de 0,5 a 5 en medias
+  estrellas. NO te las inventes: usalas para elegir ("planifica con las que mas
+  nos gustan"), y solo cambialas si te lo pido.
 - Una comida que se come fuera de casa va con "text" (ej. "Paella en casa de
   mis padres") y sin "recipeId", para que no cuente en la compra.
 
@@ -50,7 +53,8 @@ ESTRUCTURA
      "ingredients": [{ "name": "pechuga de pollo", "qty": 400, "unit": "g" }],
      "steps": "Un paso por linea.",
      "notes": "",
-     "favorite": false
+     "favorite": false,
+     "ratings": { "javi": 4.5, "andrea": 3 }   // de 0,5 a 5; 0 = sin valorar
   }],
   "plan": [{
      "id", "date": "YYYY-MM-DD", "slot": "comida"|"cena",

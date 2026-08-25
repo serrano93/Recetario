@@ -147,6 +147,8 @@ export function gramosDe(ing: Ingredient, alimento: Alimento): number | null {
     // Unidades: hacen falta los gramos por pieza para poder decir algo.
     const porPieza = alimento.gramosPorUnidad;
     if (porPieza) return ing.qty * porPieza;
+    // De una salsa nadie compra "una pieza": "1 ud pesto" es una racion.
+    if (alimento.racion) return ing.qty * alimento.racion;
     return null;
   }
   // Sin cantidad, una racion tipica es mejor estimacion que cero.

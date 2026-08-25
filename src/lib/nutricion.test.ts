@@ -35,8 +35,10 @@ describe('buscarAlimento', () => {
   });
 
   it('no casa por trozos de palabra', () => {
-    // "pan" esta dentro de "panceta", pero no es lo mismo.
-    expect(buscarAlimento('panceta')).toBeNull();
+    // "salmon" esta dentro de "salmonete", pero es otro pescado; "pan" esta
+    // dentro de "panecillo". Sin mirar los limites de palabra, ambos colarian.
+    expect(buscarAlimento('salmonete')).toBeNull();
+    expect(buscarAlimento('panecillo')).toBeNull();
   });
 
   it('devuelve null con lo que no conoce', () => {
@@ -62,6 +64,16 @@ describe('aporteDeIngrediente', () => {
     const a = aporteDeIngrediente({ name: 'huevos', qty: 2, unit: 'ud' });
     expect(a.gramos).toBe(110);
     expect(a.aporte?.kcal).toBeCloseTo(157, 0);
+  });
+
+  it('sabe lo que pesa una cebolla: "2 cebollas" son 300 g', () => {
+    // Sin esto, media receta escrita a mano se queda sin calorias.
+    expect(aporteDeIngrediente({ name: 'cebolla', qty: 2, unit: 'ud' }).gramos).toBe(300);
+    expect(aporteDeIngrediente({ name: 'calabacín', qty: 1, unit: 'ud' }).gramos).toBe(250);
+  });
+
+  it('una "unidad" de salsa es una racion', () => {
+    expect(aporteDeIngrediente({ name: 'pesto', qty: 1, unit: 'ud' }).gramos).toBe(25);
   });
 
   it('sin cantidad usa la racion tipica de la salsa', () => {
