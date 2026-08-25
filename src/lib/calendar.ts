@@ -1,4 +1,4 @@
-import type { PersonId, PlanEvent, Slot } from '../types.js';
+import type { Person, PersonId, PlanEvent, Slot } from '../types.js';
 
 /**
  * Traduccion entre Google Calendar y el Recetario.
@@ -89,6 +89,27 @@ function diaAnterior(iso: string): string {
   return fecha.toISOString().slice(0, 10);
 }
 
+/**
+ * A quien nombra el titulo del evento.
+ *
+ * En un calendario compartido no vale suponer que todo habla de su dueno:
+ * "Viaje Andrea Cullera" esta en el calendario de Javi pero es de Andrea. Como
+ * la gente pone el nombre en el titulo justo cuando el plan es de uno solo,
+ * mirarlo acierta casi siempre.
+ */
+export function personasEnTitulo(titulo: string, personas: Person[]): PersonId[] {
+  const t = normalizar(titulo);
+  return personas
+    .filter((p) => {
+      const nombre = normalizar(p.name);
+      if (!nombre) return false;
+      // Con limites de palabra, para que "Javi" no salte con "javier" ni
+      // "Ana" con "manzana".
+      return new RegExp(`(^|[^a-z0-9])${nombre}([^a-z0-9]|$)`).test(t);
+    })
+    .map((p) => p.id);
+}
+
 /** ¿Lo creo la propia app? Entonces al leer se ignora, o entramos en bucle. */
 export function esNuestro(ev: GoogleEvent): boolean {
   return Boolean(ev.extendedProperties?.private?.[MARCA_PROPIA]);
@@ -104,8 +125,13 @@ export function esNuestro(ev: GoogleEvent): boolean {
  */
 export function googleAPlan(
   ev: GoogleEvent,
-  personId: PersonId,
+  /** De quien es el calendario del que sale. Se usa como ultimo recurso. */
+  dueno: PersonId,
   reglas: ReglasCalendario = REGLAS_POR_DEFECTO,
+  /** Las personas de la casa, para poder reconocerlas en el titulo. */
+  personas: Person[] = [],
+  /** A quien afecta este calendario, si esta configurado. */
+  deQuien?: PersonId[],
 ): PlanEvent | null {
   if (ev.status === 'cancelled') return null;
   if (esNuestro(ev)) return null;
@@ -145,15 +171,21 @@ export function googleAPlan(
   if (esTodoElDia && hasta > desde) hasta = diaAnterior(hasta);
   if (hasta < desde) hasta = desde;
 
+  // Prioridad: quien diga el titulo > lo configurado para ese calendario >
+  // el dueno de la cuenta.
+  const nombrados = personasEnTitulo(titulo, personas);
+  const people = nombrados.length ? nombrados : (deQuien?.length ? deQuien : [dueno]);
+
   return {
     id: `g_${ev.id}`,
     title: titulo,
-    people: [personId],
+    people,
     from: desde,
     to: hasta,
     blocks: blocks.sort(),
     origen: 'google',
     externalId: ev.id,
+    importadoPor: dueno,
   };
 }
 
@@ -163,13 +195,15 @@ export function googleAPlan(
  */
 export function importarEventos(
   eventos: GoogleEvent[],
-  personId: PersonId,
+  dueno: PersonId,
   reglas: ReglasCalendario = REGLAS_POR_DEFECTO,
   ignorados: string[] = [],
+  personas: Person[] = [],
+  deQuien?: PersonId[],
 ): PlanEvent[] {
   const fuera = new Set(ignorados);
   return eventos
     .filter((ev) => !fuera.has(ev.id))
-    .map((ev) => googleAPlan(ev, personId, reglas))
+    .map((ev) => googleAPlan(ev, dueno, reglas, personas, deQuien))
     .filter((x): x is PlanEvent => x !== null);
 }

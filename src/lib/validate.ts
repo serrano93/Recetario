@@ -166,6 +166,7 @@ function parseEvent(v: unknown, peopleIds: Set<string>): PlanEvent | null {
     notes: asString(v.notes ?? v.notas) || undefined,
     origen: v.origen === 'google' ? 'google' : undefined,
     externalId: asString(v.externalId).trim() || undefined,
+    importadoPor: asString(v.importadoPor).trim() || undefined,
     updatedAt: asString(v.updatedAt) || undefined,
   };
 }
@@ -189,6 +190,21 @@ function parseGoogle(v: unknown): AjustesGoogle | undefined {
       bloqueaCena: asStringArray(reglas.bloqueaCena),
     },
     ignorados: asStringArray(v.ignorados),
+    calendarios: isRecord(v.calendarios)
+      ? Object.fromEntries(
+          Object.entries(v.calendarios).map(([k, x]) => [
+            k,
+            x === 'ignorar' ? ('ignorar' as const) : asStringArray(x),
+          ]),
+        )
+      : undefined,
+    vistos: asArray(v.vistos)
+      .map((x) =>
+        isRecord(x) && asString(x.id)
+          ? { id: asString(x.id), nombre: asString(x.nombre), cuenta: asString(x.cuenta) }
+          : null,
+      )
+      .filter((x): x is { id: string; nombre: string; cuenta: string } => x !== null),
     ultimaSync: asString(v.ultimaSync) || undefined,
   };
 }

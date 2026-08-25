@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { AjustesGoogle } from '../types.js';
+import type { AjustesGoogle, PersonId } from '../types.js';
 import { useStore } from '../store.js';
 import { REGLAS_POR_DEFECTO } from '../lib/calendar.js';
 import { conectarGoogle, desconectarGoogle, estadoGoogle, sincronizarGoogle } from '../lib/googleClient.js';
@@ -264,6 +264,63 @@ export function GoogleSettings() {
             </div>
           </div>
         </div>
+      )}
+
+      {ajustes.leer && (ajustes.vistos?.length ?? 0) > 0 && (
+        <>
+          <div className="section-title">Calendarios</div>
+          <div className="card" style={{ padding: 14 }}>
+            <p className="tiny muted" style={{ marginTop: 0 }}>
+              De quién habla cada calendario. Importa con los compartidos: si un calendario es de
+              los dos, lo que ponga ahí no tiene por qué ser tuyo.
+            </p>
+            <div className="stack">
+              {ajustes.vistos!.map((cal) => {
+                const actual = ajustes.calendarios?.[cal.id];
+                const opciones: { etiqueta: string; valor: PersonId[] | 'ignorar' | undefined }[] = [
+                  ...data.people.map((p) => ({ etiqueta: p.name, valor: [p.id] })),
+                  { etiqueta: 'Los dos', valor: data.people.map((p) => p.id) },
+                  { etiqueta: 'Ignorar', valor: 'ignorar' as const },
+                ];
+                const mismo = (v: PersonId[] | 'ignorar' | undefined) => {
+                  const efectivo = actual ?? [cal.cuenta];
+                  if (v === 'ignorar' || efectivo === 'ignorar') return v === efectivo;
+                  return (
+                    Array.isArray(v) &&
+                    Array.isArray(efectivo) &&
+                    v.length === efectivo.length &&
+                    v.every((x) => efectivo.includes(x))
+                  );
+                };
+                return (
+                  <div key={cal.id} className="field" style={{ gap: 4 }}>
+                    <label style={{ overflowWrap: 'anywhere' }}>{cal.nombre || cal.id}</label>
+                    <div className="row row-wrap">
+                      {opciones.map((o) => (
+                        <button
+                          key={o.etiqueta}
+                          type="button"
+                          className="chip chip-toggle"
+                          aria-pressed={mismo(o.valor)}
+                          onClick={() =>
+                            guardar({
+                              calendarios: { ...ajustes.calendarios, [cal.id]: o.valor! },
+                            })
+                          }
+                        >
+                          {o.etiqueta}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="tiny muted" style={{ marginBottom: 0 }}>
+              Si el título nombra a alguien («Viaje Andrea»), eso manda sobre lo que pongas aquí.
+            </p>
+          </div>
+        </>
       )}
 
       {ajustes.leer && (

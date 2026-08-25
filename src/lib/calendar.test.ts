@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { MARCA_PROPIA, googleAPlan, horaLocal, importarEventos, type GoogleEvent } from './calendar.js';
+import { MARCA_PROPIA, googleAPlan, horaLocal, importarEventos, personasEnTitulo, type GoogleEvent } from './calendar.js';
+import type { Person } from '../types.js';
+
+const CASA: Person[] = [
+  { id: 'javi', name: 'Javi', color: '#e07a5f' },
+  { id: 'andrea', name: 'Andrea', color: '#3d8f8f' },
+];
 
 /** Evento con hora, en horario de Madrid como lo devuelve Google. */
 function conHora(summary: string, dia: string, desde: string, hasta: string, extra: Partial<GoogleEvent> = {}): GoogleEvent {
@@ -112,5 +118,55 @@ describe('importarEventos', () => {
   it('no devuelve los que se han ignorado a mano', () => {
     const ev = conHora('Comida con cliente', '2026-08-25', '14:00', '16:00');
     expect(importarEventos([ev], 'javi', undefined, [ev.id])).toHaveLength(0);
+  });
+});
+
+
+describe('de quien es el evento', () => {
+  it('un viaje de Andrea en el calendario de Javi es de Andrea', () => {
+    // El caso real: calendario compartido. Antes se atribuia a quien conecto
+    // la cuenta, y la app creia que Javi tampoco comia en casa.
+    const ev = todoElDia('Viaje Andrea Cullera', '2026-08-26', '2026-08-28');
+    expect(googleAPlan(ev, 'javi', undefined, CASA)?.people).toEqual(['andrea']);
+  });
+
+  it('sin nombre en el titulo, es de quien tiene la cuenta', () => {
+    const ev = conHora('Comida chalet', '2026-08-25', '14:00', '16:00');
+    expect(googleAPlan(ev, 'javi', undefined, CASA)?.people).toEqual(['javi']);
+  });
+
+  it('si el titulo nombra a los dos, afecta a los dos', () => {
+    const ev = conHora('Cena Javi y Andrea con los padres', '2026-08-25', '21:00', '23:00');
+    expect(googleAPlan(ev, 'javi', undefined, CASA)?.people).toEqual(['javi', 'andrea']);
+  });
+
+  it('el calendario configurado manda sobre el dueno de la cuenta', () => {
+    const ev = conHora('Comida chalet', '2026-08-25', '14:00', '16:00');
+    expect(googleAPlan(ev, 'javi', undefined, CASA, ['andrea'])?.people).toEqual(['andrea']);
+  });
+
+  it('pero el nombre del titulo manda sobre el calendario', () => {
+    const ev = todoElDia('Viaje Andrea', '2026-08-26', '2026-08-27');
+    expect(googleAPlan(ev, 'javi', undefined, CASA, ['javi'])?.people).toEqual(['andrea']);
+  });
+
+  it('guarda desde que cuenta se trajo, que no es lo mismo que de quien es', () => {
+    const ev = todoElDia('Viaje Andrea Cullera', '2026-08-26', '2026-08-28');
+    const out = googleAPlan(ev, 'javi', undefined, CASA);
+    expect(out?.people).toEqual(['andrea']);
+    expect(out?.importadoPor).toBe('javi');
+  });
+});
+
+describe('personasEnTitulo', () => {
+  it('no confunde nombres contenidos en otras palabras', () => {
+    // "Javi" dentro de "Javier" no cuenta, ni "Ana" dentro de "manzana".
+    expect(personasEnTitulo('Comprar manzanas', [{ id: 'ana', name: 'Ana', color: '#000' }])).toEqual([]);
+    expect(personasEnTitulo('Cita con Javier Ruiz', CASA)).toEqual([]);
+  });
+
+  it('reconoce el nombre con acentos y mayusculas distintas', () => {
+    const casa: Person[] = [{ id: 'a', name: 'Andrés', color: '#000' }];
+    expect(personasEnTitulo('VIAJE ANDRES A ROMA', casa)).toEqual(['a']);
   });
 });

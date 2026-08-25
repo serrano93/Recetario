@@ -82,6 +82,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let eventos: PlanEvent[] = data.events ?? [];
     const resumen: Record<string, unknown>[] = [];
+    const porCalendario = ajustes?.calendarios ?? {};
+    const vistos: { id: string; nombre: string; cuenta: string }[] = [];
 
     const caducados: string[] = [];
 
@@ -117,19 +119,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (leer) {
         const calendarios = await listarCalendarios(token);
         const ajenos = calendarios.filter((c) => c.id !== calendarioId && c.summary !== CALENDARIO);
-
-        const crudos: GoogleEvent[] = [];
         for (const cal of ajenos) {
-          crudos.push(...(await listarEventos(token, cal.id, desde, hasta)));
+          vistos.push({ id: cal.id, nombre: cal.summary, cuenta: persona });
         }
 
-        const nuevos = importarEventos(crudos, persona, reglas, ajustes?.ignorados ?? []);
+        const nuevos: PlanEvent[] = [];
+        for (const cal of ajenos) {
+          const config = porCalendario[cal.id];
+          // Un calendario puede excluirse del todo (el de trabajo, el de
+          // cumpleanos de Google...) o asignarse a quien no es su dueno.
+          if (config === 'ignorar') continue;
+          const crudos = await listarEventos(token, cal.id, desde, hasta);
+          nuevos.push(
+            ...importarEventos(
+              crudos,
+              persona,
+              reglas,
+              ajustes?.ignorados ?? [],
+              data.people,
+              Array.isArray(config) ? config : undefined,
+            ),
+          );
+        }
         cuenta.importados = nuevos.length;
 
-        // Los importados de esta persona se reemplazan enteros. Los que se
-        // hayan editado a mano ya no son 'google', asi que no se tocan.
+        // Se reemplaza lo traido por ESTA cuenta, no lo que sea de esta
+        // persona: en un calendario compartido su cuenta trae eventos de la
+        // otra, y filtrar por `people` dejaria basura sin refrescar.
         eventos = [
-          ...eventos.filter((e) => !(e.origen === 'google' && e.people[0] === persona)),
+          ...eventos.filter((e) => !(e.origen === 'google' && e.importadoPor === persona)),
           ...nuevos.map((e) => ({ ...e, updatedAt: new Date().toISOString() })),
         ];
       }
@@ -195,6 +213,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             bloqueaCena: REGLAS_POR_DEFECTO.bloqueaCena,
           },
           ignorados: ajustes?.ignorados ?? [],
+          calendarios: porCalendario,
+          vistos,
           ultimaSync: new Date().toISOString(),
         },
       },

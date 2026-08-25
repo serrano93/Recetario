@@ -114,6 +114,12 @@ export interface PlanEvent {
   origen?: 'app' | 'google';
   /** Id del evento en Google, para reconocerlo entre sincronizaciones. */
   externalId?: string;
+  /**
+   * Desde que cuenta de Google se trajo. NO es lo mismo que `people`: en un
+   * calendario compartido, la cuenta de Javi puede traer un viaje de Andrea.
+   * Sirve para saber que refrescar en cada sincronizacion.
+   */
+  importadoPor?: PersonId;
   /** Ultima vez que se toco. Lo usa la fusion para saber que version gana. */
   updatedAt?: string;
 }
@@ -161,6 +167,13 @@ export interface AjustesGoogle {
   };
   /** Ids de eventos de Google que no queremos volver a importar. */
   ignorados: string[];
+  /**
+   * A quien afecta cada calendario, por su id. 'ignorar' lo deja fuera.
+   * Sin entrada, se asume que es de quien conecto la cuenta.
+   */
+  calendarios?: Record<string, PersonId[] | 'ignorar'>;
+  /** Calendarios encontrados en la ultima sincronizacion, para poder listarlos. */
+  vistos?: { id: string; nombre: string; cuenta: PersonId }[];
   /** Ultima sincronizacion correcta, en ISO. */
   ultimaSync?: string;
 }
