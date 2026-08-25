@@ -28,6 +28,12 @@ REGLAS DEL FORMATO
   especias, que ya los tenemos.
 - Las cantidades de cada receta son para las raciones de "servings"; la app las
   escala sola segun cuanta gente coma.
+- Nombra los ingredientes en singular y en castellano llano ("pechuga de pollo",
+  "arroz", "brocoli", "calabacin"). La app reconoce esos nombres y calcula sola
+  las calorias y los macros; con nombres de fantasia no puede.
+- Las cantidades de carne, pescado, arroz y pasta van EN CRUDO.
+- De referencia, un plato de comida es mas o menos mitad proteina, un cuarto
+  verdura y un cuarto hidrato; una cena, mitad verdura y un cuarto de cada.
 - Una comida que se come fuera de casa va con "text" (ej. "Paella en casa de
   mis padres") y sin "recipeId", para que no cuente en la compra.
 

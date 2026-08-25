@@ -6,6 +6,7 @@ import { PersonPicker } from './PersonPicker.js';
 import { IconClock, IconEdit, IconStar } from './icons.js';
 import { dayName, dayNumber, rangeFrom, today } from '../lib/dates.js';
 import { esBasico, formatQty, normalize } from '../lib/ingredients.js';
+import { macrosDeReceta, redondearAporte } from '../lib/nutricion.js';
 import { newId } from '../lib/validate.js';
 
 /** Ficha de la receta: que lleva, como se hace y accesos para editar o planificar. */
@@ -41,6 +42,12 @@ export function RecipeDetail({
   }
 
   const pasos = recipe.steps.split('\n').filter((s) => s.trim());
+
+  // Se calculan al vuelo desde el catalogo de alimentos: no hay nada guardado
+  // en la receta. Por debajo de dos tercios reconocidos el numero enganaria mas
+  // de lo que ayuda, asi que no se ensena.
+  const nutricion = macrosDeReceta(recipe);
+  const macros = nutricion.cobertura >= 0.66 ? redondearAporte(nutricion.porRacion) : null;
 
   return (
     <Sheet
@@ -79,6 +86,22 @@ export function RecipeDetail({
           </span>
         ))}
       </div>
+
+      {macros && macros.kcal > 0 && (
+        <div className="nutri-linea">
+          <span className="kcal">{macros.kcal} kcal</span>
+          <span className="muted">por ración</span>
+          <span className="grow" />
+          <span>{macros.prot} g proteína</span>
+          <span>{macros.hc} g hidratos</span>
+          <span>{macros.grasa} g grasa</span>
+          {nutricion.sinDatos.length > 0 && (
+            <span className="tiny muted" style={{ width: '100%' }}>
+              Sin contar {nutricion.sinDatos.join(', ')}.
+            </span>
+          )}
+        </div>
+      )}
 
       <div>
         <div className="section-title" style={{ marginBottom: 6 }}>

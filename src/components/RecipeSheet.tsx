@@ -3,7 +3,7 @@ import type { Recipe, Slot } from '../types.js';
 import { SLOTS } from '../types.js';
 import { Sheet } from './Sheet.js';
 import { IconTrash } from './icons.js';
-import { ingredientToLine, parseIngredient } from '../lib/ingredients.js';
+import { ingredientToLine, normalize, parseIngredient } from '../lib/ingredients.js';
 import { newId } from '../lib/validate.js';
 
 /**
@@ -15,11 +15,17 @@ import { newId } from '../lib/validate.js';
  */
 export function RecipeSheet({
   recipe,
+  nueva,
   onSave,
   onDelete,
   onClose,
 }: {
   recipe?: Recipe;
+  /**
+   * `recipe` viene rellena pero todavia no existe: es el borrador que acaba de
+   * salir del constructor. Cambia el titulo, nada mas.
+   */
+  nueva?: boolean;
   onSave: (r: Recipe) => void;
   onDelete?: () => void;
   onClose: () => void;
@@ -37,6 +43,11 @@ export function RecipeSheet({
 
   const toggleFit = (s: Slot) =>
     setFits((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
+
+  /** Que ingredientes venian marcados como "ya lo tenemos en casa". */
+  const basicos = new Set(
+    (recipe?.ingredients ?? []).filter((i) => i.basico).map((i) => normalize(i.name)),
+  );
 
   const guardar = () => {
     const nombre = name.trim();
@@ -56,7 +67,10 @@ export function RecipeSheet({
       ingredients: ingredients
         .split('\n')
         .map(parseIngredient)
-        .filter((x): x is NonNullable<typeof x> => x !== null),
+        .filter((x): x is NonNullable<typeof x> => x !== null)
+        // El textarea solo lleva cantidad y nombre, asi que al reparsear se
+        // perderia el "basico" de las especias y acabarian en la compra.
+        .map((ing) => (basicos.has(normalize(ing.name)) ? { ...ing, basico: true } : ing)),
       steps: steps.trim(),
       notes: notes.trim() || undefined,
       favorite: recipe?.favorite,
@@ -66,7 +80,7 @@ export function RecipeSheet({
 
   return (
     <Sheet
-      title={recipe ? 'Editar receta' : 'Nueva receta'}
+      title={recipe && !nueva ? 'Editar receta' : 'Nueva receta'}
       onClose={onClose}
       footer={
         <>

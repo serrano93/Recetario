@@ -4,7 +4,8 @@ Web app de recetas, menús de la semana y lista de la compra para dos personas
 con horarios flexibles.
 
 - **Comidas** — el repertorio: todo lo que se puede comer o cenar, buscable por
-  nombre, etiqueta o ingrediente. Aquí se escriben y editan las recetas.
+  nombre, etiqueta o ingrediente. Aquí se escriben y editan las recetas, y está
+  el **constructor** que calcula cantidades y calorías por ti.
 - **Semana** — calendario rodante de 7 días **desde hoy** (no de lunes a
   domingo). Cada día tiene comida y cena, y cada hueco admite una comida
   compartida o una distinta para cada uno.
@@ -20,6 +21,36 @@ En la pestaña Semana, el botón **Plan** crea cualquier evento con título libr
 rango de fechas y a quién afecta. Si marcas *comida* o *cena*, esas personas
 dejan de contar: el calendario deja de pedirte que cocines para ellas y **la
 lista de la compra no compra su parte**.
+
+## El constructor de recetas
+
+El botón del gorro de cocinero (encima del **+**, en Comidas) abre un asistente:
+eliges proteína, verduras e hidratos, cómo lo vas a cocinar, y te devuelve una
+receta con **cantidades, pasos y macros**. Lo que sale se abre en el editor de
+siempre, así que se puede retocar antes de guardar; si no guardas, no existe.
+
+**El reparto del plato.** De partida, una comida es 50 % proteína / 25 % verdura
+/ 25 % hidrato, y una cena 25 / 50 / 25. No es obligatorio: son los números que
+aparecen puestos y se cambian en *Ajustar porcentajes*. No hace falta que sumen
+100, se usa la proporción entre los tres.
+
+**Las cantidades salen en crudo.** El reparto se hace sobre la comida **ya
+hecha** y luego se convierte, porque el arroz casi triplica su peso al hervir y
+el pollo pierde un cuarto. Repartir en crudo daría un plato que es casi todo
+arroz. Cada alimento lleva su factor en `src/lib/alimentos.ts`.
+
+Además hay **preparación** (decide los pasos y el aceite), **salsas**, **extras**
+y **especias**. Salsas y extras van con ración fija: no entran en el reparto,
+pero sí escalan con los comensales. Las especias van sin cantidad y marcadas
+como básicas, así que **no aparecen en la lista de la compra** — igual que la
+sal o el aceite.
+
+**Las calorías no se guardan en ningún sitio.** Se deducen del nombre de cada
+ingrediente contra el catálogo (`src/lib/nutricion.ts`), así que funcionan igual
+en las recetas escritas a mano y en las que traiga una IA, y si mañana se corrige
+un número del catálogo se corrigen todas las recetas a la vez. Cuando no se
+reconocen al menos dos tercios de los ingredientes, la ficha no enseña macros:
+un número a medias engaña más de lo que ayuda.
 
 ## Editar con una IA
 
@@ -301,6 +332,9 @@ src/
   lib/
     dates.ts        fechas en local, sin librerías
     ingredients.ts  parseo, escalado y suma de la compra
+    alimentos.ts    catalogo de alimentos con macros y rendimiento al cocinar
+    nutricion.ts    calorias de una receta, deducidas del nombre (+ tests)
+    constructor.ts  reparto del plato, preparaciones y pasos (+ tests)
     plan.ts         quién come en casa cada día
     validate.ts     saneado de JSON de fuera; nunca lanza
     aiPrompt.ts     instrucciones que acompañan al export

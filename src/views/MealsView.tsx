@@ -4,8 +4,10 @@ import { useStore } from '../store.js';
 import { normalize } from '../lib/ingredients.js';
 import { conLapidas, sellar } from '../lib/merge.js';
 import { RecipeSheet } from '../components/RecipeSheet.js';
+import { RecipeBuilder } from '../components/RecipeBuilder.js';
 import { RecipeDetail } from '../components/RecipeDetail.js';
-import { IconClock, IconPlus, IconStar } from '../components/icons.js';
+import { IconChef, IconClock, IconPlus, IconStar } from '../components/icons.js';
+import { newId } from '../lib/validate.js';
 
 type Filtro = 'todo' | Slot | 'favoritas';
 
@@ -18,7 +20,8 @@ export function MealsView() {
   const [q, setQ] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('todo');
   const [detalle, setDetalle] = useState<Recipe | null>(null);
-  const [editando, setEditando] = useState<{ recipe?: Recipe } | null>(null);
+  const [editando, setEditando] = useState<{ recipe?: Recipe; nueva?: boolean } | null>(null);
+  const [construyendo, setConstruyendo] = useState(false);
 
   const recetas = useMemo(() => {
     const nq = normalize(q);
@@ -100,7 +103,7 @@ export function MealsView() {
         {recetas.length === 0 && (
           <p className="empty">
             {data.recipes.length === 0
-              ? 'Aún no hay recetas. Toca el botón + para escribir la primera.'
+              ? 'Aún no hay recetas. Escribe una con + o usa el constructor para que te calcule las cantidades.'
               : 'Nada coincide con la búsqueda.'}
           </p>
         )}
@@ -138,9 +141,28 @@ export function MealsView() {
         ))}
       </div>
 
+      <button
+        className="fab fab-secundario"
+        aria-label="Constructor de recetas"
+        onClick={() => setConstruyendo(true)}
+      >
+        <IconChef />
+      </button>
       <button className="fab" aria-label="Nueva receta" onClick={() => setEditando({})}>
         <IconPlus size={24} />
       </button>
+
+      {construyendo && (
+        <RecipeBuilder
+          onClose={() => setConstruyendo(false)}
+          onCrear={(borrador) => {
+            // El borrador no se guarda aqui: se abre en el editor de siempre
+            // para poder tocarlo, y solo existe si se pulsa Guardar.
+            setEditando({ recipe: { ...borrador, id: newId('r') }, nueva: true });
+            setConstruyendo(false);
+          }}
+        />
+      )}
 
       {detalle && !editando && (
         <RecipeDetail
@@ -156,9 +178,10 @@ export function MealsView() {
       {editando && (
         <RecipeSheet
           recipe={editando.recipe}
+          nueva={editando.nueva}
           onSave={guardarReceta}
           onDelete={
-            editando.recipe
+            editando.recipe && !editando.nueva
               ? () => {
                   borrarReceta(editando.recipe!.id);
                   setDetalle(null);
