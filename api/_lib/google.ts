@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import type { GoogleEvent } from '../../src/lib/calendar';
-import { MARCA_PROPIA } from '../../src/lib/calendar';
+import type { GoogleEvent } from '../../src/lib/calendar.js';
+import { MARCA_PROPIA } from '../../src/lib/calendar.js';
 
 /**
  * Cliente minimo de Google Calendar, a base de `fetch`.

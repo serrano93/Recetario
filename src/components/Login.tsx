@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { signIn } from '../lib/supabase';
-import { IconChef } from './icons';
+import { signIn } from '../lib/supabase.js';
+import { IconChef } from './icons.js';
 
 /** Recuerda quien entro la ultima vez en este movil, para no teclearlo cada dia. */
 const ULTIMO_NOMBRE = 'recetario:ultimo-nombre';

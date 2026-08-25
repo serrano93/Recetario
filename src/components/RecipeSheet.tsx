@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import type { Recipe, Slot } from '../types';
-import { SLOTS } from '../types';
-import { Sheet } from './Sheet';
-import { IconTrash } from './icons';
-import { ingredientToLine, parseIngredient } from '../lib/ingredients';
-import { newId } from '../lib/validate';
+import type { Recipe, Slot } from '../types.js';
+import { SLOTS } from '../types.js';
+import { Sheet } from './Sheet.js';
+import { IconTrash } from './icons.js';
+import { ingredientToLine, parseIngredient } from '../lib/ingredients.js';
+import { newId } from '../lib/validate.js';
 
 /**
  * Editor de receta.

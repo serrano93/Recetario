@@ -1,4 +1,4 @@
-import type { Person, PersonId } from '../types';
+import type { Person, PersonId } from '../types.js';
 
 /** Etiqueta de color con el nombre de una persona. */
 export function PersonChip({ person }: { person: Person }) {

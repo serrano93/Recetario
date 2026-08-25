@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import type { PlanEntry, Recipe, Slot } from '../types';
-import { useStore } from '../store';
-import { normalize } from '../lib/ingredients';
-import { conLapidas, sellar } from '../lib/merge';
-import { RecipeSheet } from '../components/RecipeSheet';
-import { RecipeDetail } from '../components/RecipeDetail';
-import { IconClock, IconPlus, IconStar } from '../components/icons';
+import type { PlanEntry, Recipe, Slot } from '../types.js';
+import { useStore } from '../store.js';
+import { normalize } from '../lib/ingredients.js';
+import { conLapidas, sellar } from '../lib/merge.js';
+import { RecipeSheet } from '../components/RecipeSheet.js';
+import { RecipeDetail } from '../components/RecipeDetail.js';
+import { IconClock, IconPlus, IconStar } from '../components/icons.js';
 
 type Filtro = 'todo' | Slot | 'favoritas';
 

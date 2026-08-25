@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { AppData, PlanEntry, Recipe } from '../types';
-import { conLapidas, merge, sellar } from './merge';
+import type { AppData, PlanEntry, Recipe } from '../types.js';
+import { conLapidas, merge, sellar } from './merge.js';
 
 /** Recetario minimo sobre el que montar cada caso. */
 function base(over: Partial<AppData> = {}): AppData {

@@ -1,5 +1,5 @@
-import type { AppData } from '../types';
-import { today } from './dates';
+import type { AppData } from '../types.js';
+import { today } from './dates.js';
 
 /**
  * Instrucciones que acompanan al JSON cuando se lo pasas a una IA.

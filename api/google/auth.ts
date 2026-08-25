@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { configurado, firmarEstado, urlDeConsentimiento } from '../_lib/google';
-import { usuarioDe } from '../_lib/supabase';
+import { configurado, firmarEstado, urlDeConsentimiento } from '../_lib/google.js';
+import { usuarioDe } from '../_lib/supabase.js';
 
 /**
  * Arranca el OAuth de Google para una persona.

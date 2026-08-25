@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import type { AppData, PersonId, PlanEvent, Slot } from '../types';
-import { SLOTS } from '../types';
-import { Sheet } from './Sheet';
-import { PersonPicker } from './PersonPicker';
-import { IconTrash } from './icons';
-import { newId } from '../lib/validate';
+import type { AppData, PersonId, PlanEvent, Slot } from '../types.js';
+import { SLOTS } from '../types.js';
+import { Sheet } from './Sheet.js';
+import { PersonPicker } from './PersonPicker.js';
+import { IconTrash } from './icons.js';
+import { newId } from '../lib/validate.js';
 
 /**
  * Alta y edicion de un plan libre: "Javi come fuera", "Andrea de viaje",

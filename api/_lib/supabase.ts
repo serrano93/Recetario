@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { AppData } from '../../src/types';
+import type { AppData } from '../../src/types.js';
 
 /**
  * Acceso a Supabase desde el servidor.

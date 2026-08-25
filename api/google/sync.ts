@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import type { AppData, PlanEntry, PlanEvent } from '../../src/types';
-import { importarEventos, MARCA_PROPIA, REGLAS_POR_DEFECTO } from '../../src/lib/calendar';
-import type { GoogleEvent } from '../../src/lib/calendar';
-import { entryLabel } from '../../src/lib/plan';
-import { addDays, today } from '../../src/lib/dates';
+import type { AppData, PlanEntry, PlanEvent } from '../../src/types.js';
+import { importarEventos, MARCA_PROPIA, REGLAS_POR_DEFECTO } from '../../src/lib/calendar.js';
+import type { GoogleEvent } from '../../src/lib/calendar.js';
+import { entryLabel } from '../../src/lib/plan.js';
+import { addDays, today } from '../../src/lib/dates.js';
 import {
   accessToken,
   actualizarEvento,
@@ -14,14 +14,14 @@ import {
   CALENDARIO,
   listarCalendarios,
   listarEventos,
-} from '../_lib/google';
+} from '../_lib/google.js';
 import {
   guardarIntegracion,
   guardarRecetario,
   leerRecetario,
   listarIntegraciones,
   usuarioDe,
-} from '../_lib/supabase';
+} from '../_lib/supabase.js';
 
 /** Cuantos dias por delante se sincronizan. */
 const VENTANA = 14;

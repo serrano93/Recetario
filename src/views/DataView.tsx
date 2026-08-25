@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { useStore } from '../store';
-import { buildAiPrompt } from '../lib/aiPrompt';
-import { parseJsonLoose, sanitize, sanitizePartial } from '../lib/validate';
-import { seedData } from '../lib/seed';
-import { supabaseEnabled } from '../lib/supabase';
-import { describeSnapshot, listSnapshots, timeAgo, type Snapshot } from '../lib/snapshots';
-import { IconCopy } from '../components/icons';
-import { GoogleSettings } from '../components/GoogleSettings';
+import { useStore } from '../store.js';
+import { buildAiPrompt } from '../lib/aiPrompt.js';
+import { parseJsonLoose, sanitize, sanitizePartial } from '../lib/validate.js';
+import { seedData } from '../lib/seed.js';
+import { supabaseEnabled } from '../lib/supabase.js';
+import { describeSnapshot, listSnapshots, timeAgo, type Snapshot } from '../lib/snapshots.js';
+import { IconCopy } from '../components/icons.js';
+import { GoogleSettings } from '../components/GoogleSettings.js';
 
 /**
  * Puente con cualquier IA: se copia todo el recetario (con instrucciones), se

@@ -2,10 +2,14 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.api.tsbuildinfo",
     "target": "es2023",
-    "lib": ["ES2023"],
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "types": ["node"],
+    "lib": [
+      "ES2023"
+    ],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": [
+      "node"
+    ],
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
@@ -14,5 +18,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["api"]
+  "include": [
+    "api"
+  ]
 }

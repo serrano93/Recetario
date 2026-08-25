@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import type { AppData, PersonId, PlanEntry, Recipe, Slot } from '../types';
-import { SLOTS } from '../types';
-import { Sheet } from './Sheet';
-import { PersonPicker } from './PersonPicker';
-import { IconClock, IconEdit, IconStar } from './icons';
-import { dayName, dayNumber, rangeFrom, today } from '../lib/dates';
-import { esBasico, formatQty, normalize } from '../lib/ingredients';
-import { newId } from '../lib/validate';
+import type { AppData, PersonId, PlanEntry, Recipe, Slot } from '../types.js';
+import { SLOTS } from '../types.js';
+import { Sheet } from './Sheet.js';
+import { PersonPicker } from './PersonPicker.js';
+import { IconClock, IconEdit, IconStar } from './icons.js';
+import { dayName, dayNumber, rangeFrom, today } from '../lib/dates.js';
+import { esBasico, formatQty, normalize } from '../lib/ingredients.js';
+import { newId } from '../lib/validate.js';
 
 /** Ficha de la receta: que lleva, como se hace y accesos para editar o planificar. */
 export function RecipeDetail({

@@ -1,7 +1,7 @@
-import { CURRENT_VERSION } from '../types';
-import type { AppData, Recipe } from '../types';
-import { DESPENSA_POR_DEFECTO } from './ingredients';
-import { defaultPeople } from './validate';
+import { CURRENT_VERSION } from '../types.js';
+import type { AppData, Recipe } from '../types.js';
+import { DESPENSA_POR_DEFECTO } from './ingredients.js';
+import { defaultPeople } from './validate.js';
 
 function receta(r: Omit<Recipe, 'id'> & { id: string }): Recipe {
   return r;

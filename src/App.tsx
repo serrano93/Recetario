@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { StoreProvider, useStore } from './store';
-import { MealsView } from './views/MealsView';
-import { PlannerView } from './views/PlannerView';
-import { ShoppingView } from './views/ShoppingView';
-import { DataView } from './views/DataView';
-import { Login } from './components/Login';
-import { IconBook, IconCalendar, IconCart, IconChef, IconData } from './components/icons';
-import { supabaseEnabled } from './lib/supabase';
-import { sincronizarGoogle } from './lib/googleClient';
+import { StoreProvider, useStore } from './store.js';
+import { MealsView } from './views/MealsView.js';
+import { PlannerView } from './views/PlannerView.js';
+import { ShoppingView } from './views/ShoppingView.js';
+import { DataView } from './views/DataView.js';
+import { Login } from './components/Login.js';
+import { IconBook, IconCalendar, IconCart, IconChef, IconData } from './components/icons.js';
+import { supabaseEnabled } from './lib/supabase.js';
+import { sincronizarGoogle } from './lib/googleClient.js';
 
 /** No merece la pena sincronizar mas a menudo que esto al abrir la app. */
 const MINUTOS_ENTRE_SYNC = 30;

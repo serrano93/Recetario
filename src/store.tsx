@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { AppData } from './types';
-import { seedData } from './lib/seed';
-import { sanitize } from './lib/validate';
-import { merge } from './lib/merge';
-import { pushSnapshot } from './lib/snapshots';
+import type { AppData } from './types.js';
+import { seedData } from './lib/seed.js';
+import { sanitize } from './lib/validate.js';
+import { merge } from './lib/merge.js';
+import { pushSnapshot } from './lib/snapshots.js';
 import {
   currentEmail,
   fetchRemote,
@@ -13,7 +13,7 @@ import {
   signOut as remoteSignOut,
   subscribeRemote,
   supabaseEnabled,
-} from './lib/supabase';
+} from './lib/supabase.js';
 
 const STORAGE_KEY = 'recetario:v1';
 

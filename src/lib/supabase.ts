@@ -1,5 +1,5 @@
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
-import type { AppData } from '../types';
+import type { AppData } from '../types.js';
 
 /**
  * Capa de sincronizacion opcional.

@@ -1,4 +1,4 @@
-import type { AppData } from '../types';
+import type { AppData } from '../types.js';
 
 /**
  * Red de seguridad para "Sobrescribir todo".

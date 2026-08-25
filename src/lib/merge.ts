@@ -1,4 +1,4 @@
-import type { AppData, Tombstone } from '../types';
+import type { AppData, Tombstone } from '../types.js';
 
 /**
  * Fusion de dos copias del recetario.

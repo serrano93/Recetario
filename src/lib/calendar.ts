@@ -1,4 +1,4 @@
-import type { PersonId, PlanEvent, Slot } from '../types';
+import type { PersonId, PlanEvent, Slot } from '../types.js';
 
 /**
  * Traduccion entre Google Calendar y el Recetario.

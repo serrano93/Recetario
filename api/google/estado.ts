@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { configurado } from '../_lib/google';
-import { listarIntegraciones, usuarioDe } from '../_lib/supabase';
+import { configurado } from '../_lib/google.js';
+import { listarIntegraciones, usuarioDe } from '../_lib/supabase.js';
 
 /**
  * Quien tiene el calendario conectado.

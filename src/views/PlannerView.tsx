@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
-import type { PlanEntry, PlanEvent, Slot } from '../types';
-import { SLOTS } from '../types';
-import { useStore } from '../store';
-import { dayName, dayNumber, monthName, rangeFrom, today } from '../lib/dates';
-import { blockedIn, coveredIn, dinersFor, entriesFor, entryLabel, eventsOn } from '../lib/plan';
-import { conLapidas, sellar } from '../lib/merge';
-import { MealSheet } from '../components/MealSheet';
-import { EventSheet } from '../components/EventSheet';
-import { IconCheck, IconPlane, IconPlus } from '../components/icons';
+import type { PlanEntry, PlanEvent, Slot } from '../types.js';
+import { SLOTS } from '../types.js';
+import { useStore } from '../store.js';
+import { dayName, dayNumber, monthName, rangeFrom, today } from '../lib/dates.js';
+import { blockedIn, coveredIn, dinersFor, entriesFor, entryLabel, eventsOn } from '../lib/plan.js';
+import { conLapidas, sellar } from '../lib/merge.js';
+import { MealSheet } from '../components/MealSheet.js';
+import { EventSheet } from '../components/EventSheet.js';
+import { IconCheck, IconPlane, IconPlus } from '../components/icons.js';
 
 type MealTarget =
   | { mode: 'new'; date: string; slot: Slot; people: string[] }

@@ -1,5 +1,5 @@
-import type { AppData, Ingredient, PersonId, Recipe } from '../types';
-import { blockedIn } from './plan';
+import type { AppData, Ingredient, PersonId, Recipe } from '../types.js';
+import { blockedIn } from './plan.js';
 
 /** Minusculas, sin acentos y sin espacios de sobra. Sirve como clave de agrupacion. */
 export function normalize(s: string): string {

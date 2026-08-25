@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { useStore } from '../store';
-import { rangeFrom, today } from '../lib/dates';
-import { buildShoppingList, formatQty, normalize, parseIngredient } from '../lib/ingredients';
-import { IconCheck, IconCopy, IconTrash } from '../components/icons';
-import { newId } from '../lib/validate';
-import { conLapidas, sellar } from '../lib/merge';
+import { useStore } from '../store.js';
+import { rangeFrom, today } from '../lib/dates.js';
+import { buildShoppingList, formatQty, normalize, parseIngredient } from '../lib/ingredients.js';
+import { IconCheck, IconCopy, IconTrash } from '../components/icons.js';
+import { newId } from '../lib/validate.js';
+import { conLapidas, sellar } from '../lib/merge.js';
 
 /**
  * Lista de la compra: se calcula sola a partir de lo planificado en los

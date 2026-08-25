@@ -1,4 +1,4 @@
-import { getClient } from './supabase';
+import { getClient } from './supabase.js';
 
 /**
  * Llamadas a las funciones de `api/google/` desde el navegador.

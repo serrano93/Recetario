@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { IconClose } from './icons';
+import { IconClose } from './icons.js';
 
 /** Panel modal que sube desde abajo en movil y se centra en escritorio. */
 export function Sheet({

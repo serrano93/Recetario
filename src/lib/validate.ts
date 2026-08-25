@@ -1,4 +1,4 @@
-import { CURRENT_VERSION, SLOTS } from '../types';
+import { CURRENT_VERSION, SLOTS } from '../types.js';
 import type {
   AjustesGoogle,
   AppData,
@@ -10,9 +10,9 @@ import type {
   Recipe,
   Slot,
   Tombstone,
-} from '../types';
-import { DESPENSA_POR_DEFECTO } from './ingredients';
-import { today } from './dates';
+} from '../types.js';
+import { DESPENSA_POR_DEFECTO } from './ingredients.js';
+import { today } from './dates.js';
 
 /**
  * Saneado de datos que vienen de fuera (import de JSON, respuesta de una IA,

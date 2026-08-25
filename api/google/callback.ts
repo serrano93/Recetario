@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { canjearCodigo, verificarEstado } from '../_lib/google';
-import { guardarIntegracion } from '../_lib/supabase';
+import { canjearCodigo, verificarEstado } from '../_lib/google.js';
+import { guardarIntegracion } from '../_lib/supabase.js';
 
 /** Cuanto vale un enlace de consentimiento antes de caducar. */
 const MINUTOS_VALIDO = 15;

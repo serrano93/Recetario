@@ -1,6 +1,6 @@
-import type { AppData, PersonId, PlanEntry, PlanEvent, Slot } from '../types';
-import { SLOTS } from '../types';
-import { addDays, isBetween } from './dates';
+import type { AppData, PersonId, PlanEntry, PlanEvent, Slot } from '../types.js';
+import { SLOTS } from '../types.js';
+import { addDays, isBetween } from './dates.js';
 
 /** Planes activos en una fecha concreta. */
 export function eventsOn(events: PlanEvent[], date: string): PlanEvent[] {

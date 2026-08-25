@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { borrarIntegracion, usuarioDe } from '../_lib/supabase';
+import { borrarIntegracion, usuarioDe } from '../_lib/supabase.js';
 
 /**
  * Desconecta el calendario de una persona: borra su refresh token.

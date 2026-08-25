@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MARCA_PROPIA, googleAPlan, horaLocal, importarEventos, type GoogleEvent } from './calendar';
+import { MARCA_PROPIA, googleAPlan, horaLocal, importarEventos, type GoogleEvent } from './calendar.js';
 
 /** Evento con hora, en horario de Madrid como lo devuelve Google. */
 function conHora(summary: string, dia: string, desde: string, hasta: string, extra: Partial<GoogleEvent> = {}): GoogleEvent {

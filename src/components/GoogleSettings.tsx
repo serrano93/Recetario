@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { AjustesGoogle } from '../types';
-import { useStore } from '../store';
-import { REGLAS_POR_DEFECTO } from '../lib/calendar';
-import { conectarGoogle, desconectarGoogle, estadoGoogle, sincronizarGoogle } from '../lib/googleClient';
-import { timeAgo } from '../lib/snapshots';
+import type { AjustesGoogle } from '../types.js';
+import { useStore } from '../store.js';
+import { REGLAS_POR_DEFECTO } from '../lib/calendar.js';
+import { conectarGoogle, desconectarGoogle, estadoGoogle, sincronizarGoogle } from '../lib/googleClient.js';
+import { timeAgo } from '../lib/snapshots.js';
 
 const POR_DEFECTO: AjustesGoogle = {
   leer: true,

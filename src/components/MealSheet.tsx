@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import type { AppData, PersonId, PlanEntry, Slot } from '../types';
-import { Sheet } from './Sheet';
-import { PersonPicker } from './PersonPicker';
-import { IconClock, IconTrash } from './icons';
-import { formatLong } from '../lib/dates';
-import { normalize } from '../lib/ingredients';
-import { nextFreeSlots } from '../lib/plan';
-import { newId } from '../lib/validate';
+import type { AppData, PersonId, PlanEntry, Slot } from '../types.js';
+import { Sheet } from './Sheet.js';
+import { PersonPicker } from './PersonPicker.js';
+import { IconClock, IconTrash } from './icons.js';
+import { formatLong } from '../lib/dates.js';
+import { normalize } from '../lib/ingredients.js';
+import { nextFreeSlots } from '../lib/plan.js';
+import { newId } from '../lib/validate.js';
 
 /**
  * Alta y edicion de una comida del calendario: para quien es, y que se come
