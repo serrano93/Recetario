@@ -3,11 +3,5 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [
-    {
-      "comment": "Todo a la SPA menos /api, que son funciones serverless.",
-      "source": "/((?!api/).*)",
-      "destination": "/"
-    }
-  ]
+  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/" }]
 }

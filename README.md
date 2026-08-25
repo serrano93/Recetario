@@ -115,6 +115,20 @@ Para cambiar una contraseña, en esa misma pantalla: *⋯ → Reset password*.
 
 Para desarrollo local, los mismos valores en un `.env.local`.
 
+## Backend
+
+Las funciones serverless viven en `api/` y las despliega Vercel sola. Hacen falta
+porque el navegador no puede guardar un refresh token de Google ni recibir la
+llamada de Alexa.
+
+El `rewrites` de `vercel.json` lleva una negación (`/((?!api/).*)`) a propósito:
+sin ella, el catch-all de la SPA se traga las rutas de API y `/api/loquesea`
+devuelve el `index.html` con un 200 tan tranquilo. `GET /api/ping` sirve para
+comprobar de un vistazo que eso sigue bien.
+
+Los secretos de servidor van en variables **sin** el prefijo `VITE_`, que es lo
+que las dejaría dentro del bundle público.
+
 ## Cómo está montado
 
 Todo el estado es un único objeto JSON (`AppData` en `src/types.ts`). Es una
