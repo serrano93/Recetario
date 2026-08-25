@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { StoreProvider, useStore } from './store';
 import { MealsView } from './views/MealsView';
@@ -8,6 +8,33 @@ import { DataView } from './views/DataView';
 import { Login } from './components/Login';
 import { IconBook, IconCalendar, IconCart, IconChef, IconData } from './components/icons';
 import { supabaseEnabled } from './lib/supabase';
+import { sincronizarGoogle } from './lib/googleClient';
+
+/** No merece la pena sincronizar mas a menudo que esto al abrir la app. */
+const MINUTOS_ENTRE_SYNC = 30;
+
+/**
+ * Sincroniza con Google al abrir, si toca.
+ *
+ * Es el disparo principal: en el plan Hobby de Vercel los cron son de una vez
+ * al dia, asi que esperar solo al cron dejaria el calendario desfasado.
+ */
+function useSyncAlAbrir() {
+  const { data, email } = useStore();
+  const hecho = useRef(false);
+
+  useEffect(() => {
+    if (!email || hecho.current) return;
+    const g = data.integraciones?.google;
+    if (!g || (!g.leer && !g.escribir)) return;
+    const ultima = g.ultimaSync ? Date.parse(g.ultimaSync) : 0;
+    if (Date.now() - ultima < MINUTOS_ENTRE_SYNC * 60_000) return;
+    hecho.current = true;
+    // En silencio: si falla, la app funciona igual y se ve el error al
+    // sincronizar a mano desde Datos.
+    void sincronizarGoogle().catch(() => {});
+  }, [email, data.integraciones?.google]);
+}
 
 type Tab = 'disponibles' | 'semana' | 'compra' | 'datos';
 
@@ -42,6 +69,7 @@ function SyncBadge() {
 
 function Shell() {
   const { sync } = useStore();
+  useSyncAlAbrir();
   const [tab, setTab] = useState<Tab>('semana');
   const [saltarLogin, setSaltarLogin] = useState(false);
 

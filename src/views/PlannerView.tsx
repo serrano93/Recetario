@@ -55,17 +55,32 @@ export function PlannerView() {
   const guardarEvento = (ev: PlanEvent) =>
     update((prev) => ({
       ...prev,
+      // Al tocarlo a mano deja de ser de Google: si no, la siguiente
+      // sincronizacion machacaria la edicion.
       events: prev.events.some((x) => x.id === ev.id)
-        ? prev.events.map((x) => (x.id === ev.id ? sellar(ev) : x))
+        ? prev.events.map((x) => (x.id === ev.id ? sellar({ ...ev, origen: undefined }) : x))
         : [...prev.events, sellar(ev)],
     }));
 
   const borrarEvento = (id: string) =>
-    update((prev) => ({
-      ...prev,
-      events: prev.events.filter((e) => e.id !== id),
-      deleted: conLapidas(prev, [id]),
-    }));
+    update((prev) => {
+      const ev = prev.events.find((e) => e.id === id);
+      // Si venia de Google hay que apuntarlo como ignorado, o vuelve a
+      // aparecer en cuanto se sincronice otra vez.
+      const ignorados = prev.integraciones?.google?.ignorados ?? [];
+      const nuevosIgnorados =
+        ev?.origen === 'google' && ev.externalId && !ignorados.includes(ev.externalId)
+          ? [...ignorados, ev.externalId]
+          : ignorados;
+      return {
+        ...prev,
+        events: prev.events.filter((e) => e.id !== id),
+        deleted: conLapidas(prev, [id]),
+        integraciones: prev.integraciones?.google
+          ? { ...prev.integraciones, google: { ...prev.integraciones.google, ignorados: nuevosIgnorados } }
+          : prev.integraciones,
+      };
+    });
 
   const persona = (id: string) => data.people.find((p) => p.id === id);
 
@@ -101,6 +116,11 @@ export function PlannerView() {
                 <IconPlane />
                 <span className="grow" style={{ textAlign: 'left' }}>
                   {ev.title}
+                  {ev.origen === 'google' && (
+                    <span className="tag" style={{ marginLeft: 6 }}>
+                      calendario
+                    </span>
+                  )}
                 </span>
                 {ev.people.map((pid) => {
                   const p = persona(pid);

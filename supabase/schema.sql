@@ -50,3 +50,24 @@ $$;
 insert into public.recetario (id, data)
 values ('main', '{}'::jsonb)
 on conflict (id) do nothing;
+
+-- ---------------------------------------------------------------------------
+-- Integraciones (Google Calendar)
+--
+-- Los tokens de Google NO pueden vivir en la tabla `recetario`: ese documento
+-- se le sirve entero al navegador. Aqui van aparte y, a proposito, SIN ninguna
+-- policy: con RLS activado y cero policies, la clave `anon` no puede leer ni
+-- una fila. Solo entra `service_role`, que se salta RLS y solo existe en las
+-- variables de entorno del servidor.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.integraciones (
+  person_id     text primary key,
+  proveedor     text        not null default 'google',
+  refresh_token text        not null,
+  -- Calendario "Recetario" que crea la app para publicar las comidas.
+  calendar_id   text,
+  actualizado   timestamptz not null default now()
+);
+
+alter table public.integraciones enable row level security;

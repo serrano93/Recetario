@@ -107,6 +107,13 @@ export interface PlanEvent {
   /** Slots en los que esas personas no comen en casa. Vacio = solo es una nota. */
   blocks: Slot[];
   notes?: string;
+  /**
+   * De donde sale. 'google' = importado del calendario, y se refresca solo en
+   * cada sincronizacion. Al editarlo a mano pasa a 'app' y deja de tocarse.
+   */
+  origen?: 'app' | 'google';
+  /** Id del evento en Google, para reconocerlo entre sincronizaciones. */
+  externalId?: string;
   /** Ultima vez que se toco. Lo usa la fusion para saber que version gana. */
   updatedAt?: string;
 }
@@ -133,6 +140,31 @@ export interface Tombstone {
   at: string;
 }
 
+/**
+ * Ajustes de la sincronizacion con Google Calendar.
+ * Aqui NO hay secretos: los tokens viven en la tabla `integraciones` de
+ * Supabase, a la que el navegador no llega. Esto se sirve al cliente entero.
+ */
+export interface AjustesGoogle {
+  /** Traer del calendario quien no come en casa. */
+  leer: boolean;
+  /** Publicar las comidas en un calendario propio. */
+  escribir: boolean;
+  /** Hora a la que se publican, en formato "14:00". */
+  horaComida: string;
+  horaCena: string;
+  /** Palabras clave que deciden que bloquea cada evento. */
+  reglas: {
+    todoElDia: string[];
+    bloqueaComida: string[];
+    bloqueaCena: string[];
+  };
+  /** Ids de eventos de Google que no queremos volver a importar. */
+  ignorados: string[];
+  /** Ultima sincronizacion correcta, en ISO. */
+  ultimaSync?: string;
+}
+
 export interface AppData {
   /** Version del esquema. Sube si el formato cambia de forma incompatible. */
   version: 1;
@@ -144,6 +176,8 @@ export interface AppData {
   compra: ManualItem[];
   /** Ids borrados, para que la fusion no los resucite. Se podan a los 30 dias. */
   deleted?: Tombstone[];
+  /** Ajustes de integraciones. Sin secretos: se sirve al navegador entero. */
+  integraciones?: { google?: AjustesGoogle };
   /** Ingredientes marcados como comprados (clave normalizada del ingrediente). */
   compradosIds: string[];
   /**

@@ -6,6 +6,7 @@ import { seedData } from '../lib/seed';
 import { supabaseEnabled } from '../lib/supabase';
 import { describeSnapshot, listSnapshots, timeAgo, type Snapshot } from '../lib/snapshots';
 import { IconCopy } from '../components/icons';
+import { GoogleSettings } from '../components/GoogleSettings';
 
 /**
  * Puente con cualquier IA: se copia todo el recetario (con instrucciones), se
@@ -243,6 +244,8 @@ export function DataView() {
           Guardar despensa
         </button>
       </div>
+
+      <GoogleSettings />
 
       <div className="section-title">Sincronización</div>
       <div className="card" style={{ padding: 14 }}>

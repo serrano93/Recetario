@@ -1,5 +1,6 @@
 import { CURRENT_VERSION, SLOTS } from '../types';
 import type {
+  AjustesGoogle,
   AppData,
   Ingredient,
   ManualItem,
@@ -163,7 +164,32 @@ function parseEvent(v: unknown, peopleIds: Set<string>): PlanEvent | null {
     to: to < from ? from : to,
     blocks: asSlots(v.blocks ?? v.bloquea),
     notes: asString(v.notes ?? v.notas) || undefined,
+    origen: v.origen === 'google' ? 'google' : undefined,
+    externalId: asString(v.externalId).trim() || undefined,
     updatedAt: asString(v.updatedAt) || undefined,
+  };
+}
+
+/** Ajustes de Google. Nunca lleva secretos: los tokens viven en el servidor. */
+function parseGoogle(v: unknown): AjustesGoogle | undefined {
+  if (!isRecord(v)) return undefined;
+  const reglas = isRecord(v.reglas) ? v.reglas : {};
+  const hora = (x: unknown, porDefecto: string) => {
+    const s = asString(x).trim();
+    return /^\d{2}:\d{2}$/.test(s) ? s : porDefecto;
+  };
+  return {
+    leer: v.leer !== false,
+    escribir: v.escribir === true,
+    horaComida: hora(v.horaComida, '14:00'),
+    horaCena: hora(v.horaCena, '21:00'),
+    reglas: {
+      todoElDia: asStringArray(reglas.todoElDia),
+      bloqueaComida: asStringArray(reglas.bloqueaComida),
+      bloqueaCena: asStringArray(reglas.bloqueaCena),
+    },
+    ignorados: asStringArray(v.ignorados),
+    ultimaSync: asString(v.ultimaSync) || undefined,
   };
 }
 
@@ -258,6 +284,9 @@ export function sanitize(input: unknown): ValidationResult {
       events,
       compra,
       deleted: parseTombstones(raw.deleted),
+      integraciones: isRecord(raw.integraciones)
+        ? { google: parseGoogle(raw.integraciones.google) }
+        : undefined,
       compradosIds: asStringArray(raw.compradosIds ?? raw.comprados),
       despensa,
       updatedAt: asString(raw.updatedAt) || new Date().toISOString(),

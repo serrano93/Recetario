@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:secrets": "node scripts/verificar-secretos.mjs",
+    "verify": "npm run build && npm test && npm run check:secrets"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
