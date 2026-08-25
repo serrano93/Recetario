@@ -227,6 +227,61 @@ solo para las personas que conectáis vosotros.
 Hasta que esas dos variables estén puestas, la sección dice "sin configurar" y el
 resto de la app funciona igual.
 
+## Alexa
+
+Skill privada, en modo desarrollo: solo funciona en vuestras cuentas de Amazon,
+así que no pasa certificación ni necesita *account linking*.
+
+Qué entiende:
+
+| Dices | Hace |
+|---|---|
+| *«Alexa, pregunta a recetario qué cenamos hoy»* | Lee el plan de ese día |
+| *«Alexa, dile a recetario que apunte tomates»* | Lo añade a la compra |
+| *«Alexa, pregunta a recetario qué lleva las lentejas»* | Enumera los ingredientes |
+| *«Alexa, pregunta a recetario cómo se hacen las lentejas»* | Los pasos, uno a uno; di «siguiente» |
+| *«Alexa, dile a recetario que Andrea come fuera mañana»* | Crea el plan y recalcula la compra |
+
+Si no dices si es comida o cena, se deduce de la hora: antes de las cuatro,
+comida; después, cena. Preguntar «¿comida o cena?» a las nueve de la noche sería
+de robot.
+
+### Seguridad del endpoint
+
+`/api/alexa` está abierto a internet, así que:
+
+- **Se verifica la firma de Amazon** contra el cuerpo **crudo** de la petición.
+  Por eso el endpoint desactiva el parseo automático (`bodyParser: false`):
+  parsear y volver a serializar cambia algún byte y la firma dejaría de cuadrar.
+- **Se comprueba el id de la skill.** Que una petición venga firmada por Amazon
+  solo prueba que viene de Alexa, no de *vuestra* Alexa. Sin `ALEXA_SKILL_ID`
+  configurado el endpoint **no atiende a nadie**: falla cerrado a propósito.
+- **Se rechazan las peticiones de más de 150 segundos**, que es lo que frena
+  reenviar una capturada.
+
+### Montarla (Amazon Developer Console)
+
+1. [developer.amazon.com/alexa/console/ask](https://developer.amazon.com/alexa/console/ask)
+   → **Crear Skill**. Nombre: Recetario. Idioma: **Español (ES)**.
+   Modelo: **Custom**. Alojamiento: **Provision your own**.
+2. En **Build → JSON Editor**, pega el contenido de
+   [`alexa/modelo-interaccion.json`](alexa/modelo-interaccion.json) y guarda.
+   Luego **Build Model**.
+3. En **Build → Endpoint**, elige **HTTPS** y pon:
+   ```
+   https://recetitasamorosas.vercel.app/api/alexa
+   ```
+   En el desplegable del certificado: *«Mi punto de enlace es un subdominio de
+   un dominio que tiene un certificado comodín de una autoridad certificadora»*.
+4. Copia el **Skill ID** (arriba, junto al nombre) y añádelo en Vercel como
+   `ALEXA_SKILL_ID`. Vuelve a desplegar.
+5. Pruébala desde la pestaña **Test** de la consola, poniendo el desplegable en
+   **Development**. Al estar tu cuenta de Amazon vinculada, también funcionará
+   en tus Echo.
+
+Si cambias los nombres de las personas en la app, actualiza también el tipo
+`Persona` del modelo de interacción y vuelve a hacer **Build Model**.
+
 ## Cómo está montado
 
 Todo el estado es un único objeto JSON (`AppData` en `src/types.ts`). Es una
@@ -248,11 +303,13 @@ src/
     merge.ts        fusión sin perder lo que hizo el otro (+ merge.test.ts)
     snapshots.ts    copias locales para poder deshacer
     calendar.ts     evento de Google -> plan (+ calendar.test.ts)
+    alexa.ts        lo que la skill entiende y contesta (+ tests)
     googleClient.ts llamadas a api/google desde el navegador
 api/
   ping.ts         comprueba que las funciones responden
   _lib/           supabase con service_role, y cliente de Google
   google/         auth, callback, sync, estado, desconectar
+  alexa.ts        endpoint de la skill, con verificacion de firma
 scripts/
   verificar-secretos.mjs   que nada secreto acabe en dist/
   views/          las cuatro pestañas

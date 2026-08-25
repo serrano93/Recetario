@@ -1,0 +1,170 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "recetario",
+      "modelConfiguration": { "fallbackIntentSensitivity": { "level": "LOW" } },
+      "intents": [
+        { "name": "AMAZON.CancelIntent", "samples": [] },
+        { "name": "AMAZON.HelpIntent", "samples": [] },
+        { "name": "AMAZON.StopIntent", "samples": [] },
+        { "name": "AMAZON.NavigateHomeIntent", "samples": [] },
+        { "name": "AMAZON.FallbackIntent", "samples": [] },
+        { "name": "AMAZON.NextIntent", "samples": ["siguiente", "el siguiente", "sigue", "continúa"] },
+        { "name": "AMAZON.YesIntent", "samples": [] },
+        { "name": "AMAZON.NoIntent", "samples": [] },
+        {
+          "name": "QueComemos",
+          "slots": [
+            { "name": "momento", "type": "MomentoComida" },
+            { "name": "fecha", "type": "AMAZON.DATE" }
+          ],
+          "samples": [
+            "qué comemos",
+            "qué comemos {fecha}",
+            "qué cenamos",
+            "qué cenamos {fecha}",
+            "qué hay para {momento}",
+            "qué hay para {momento} {fecha}",
+            "qué hay de {momento}",
+            "qué toca {momento}",
+            "qué toca {momento} {fecha}",
+            "qué toca comer",
+            "qué toca comer {fecha}",
+            "qué toca cenar",
+            "qué toca cenar {fecha}",
+            "qué tenemos para {momento}",
+            "qué tenemos para {momento} {fecha}",
+            "qué hay que hacer de {momento}",
+            "qué {momento} hay {fecha}",
+            "la {momento} de {fecha}",
+            "qué comemos el {fecha}"
+          ]
+        },
+        {
+          "name": "AnadirCompra",
+          "slots": [{ "name": "producto", "type": "AMAZON.SearchQuery" }],
+          "samples": [
+            "apunta {producto}",
+            "apunta {producto} en la compra",
+            "apunta {producto} en la lista",
+            "añade {producto}",
+            "añade {producto} a la compra",
+            "añade {producto} a la lista de la compra",
+            "que hay que comprar {producto}",
+            "necesitamos {producto}",
+            "nos falta {producto}",
+            "se ha acabado {producto}",
+            "compra {producto}",
+            "pon {producto} en la compra"
+          ]
+        },
+        {
+          "name": "RecetaIngredientes",
+          "slots": [{ "name": "receta", "type": "AMAZON.SearchQuery" }],
+          "samples": [
+            "qué lleva {receta}",
+            "qué lleva la receta de {receta}",
+            "qué ingredientes lleva {receta}",
+            "qué ingredientes necesito para {receta}",
+            "qué hace falta para {receta}",
+            "ingredientes de {receta}"
+          ]
+        },
+        {
+          "name": "RecetaPasos",
+          "slots": [{ "name": "receta", "type": "AMAZON.SearchQuery" }],
+          "samples": [
+            "cómo se hace {receta}",
+            "cómo se hacen {receta}",
+            "cómo se prepara {receta}",
+            "cómo hago {receta}",
+            "dime cómo se hace {receta}",
+            "receta de {receta}",
+            "explícame {receta}"
+          ]
+        },
+        {
+          "name": "ComoFuera",
+          "slots": [
+            {
+              "name": "persona",
+              "type": "Persona",
+              "samples": ["{persona}", "es {persona}", "come fuera {persona}"]
+            },
+            { "name": "momento", "type": "MomentoComida" },
+            { "name": "fecha", "type": "AMAZON.DATE" }
+          ],
+          "samples": [
+            "{persona} come fuera",
+            "{persona} come fuera {fecha}",
+            "{persona} cena fuera",
+            "{persona} cena fuera {fecha}",
+            "{persona} no come en casa",
+            "{persona} no come en casa {fecha}",
+            "{persona} no cena en casa {fecha}",
+            "que {persona} come fuera {fecha}",
+            "{persona} está de viaje",
+            "{persona} no {momento} en casa {fecha}",
+            "hoy no {momento} en casa",
+            "que alguien come fuera"
+          ]
+        }
+      ],
+      "types": [
+        {
+          "name": "MomentoComida",
+          "values": [
+            { "name": { "value": "comida", "synonyms": ["comer", "almuerzo", "almorzar", "mediodía"] } },
+            { "name": { "value": "cena", "synonyms": ["cenar", "noche", "por la noche"] } }
+          ]
+        },
+        {
+          "name": "Persona",
+          "values": [
+            { "name": { "value": "Javi", "synonyms": ["Javier", "yo"] } },
+            { "name": { "value": "Andrea", "synonyms": ["Andre"] } }
+          ]
+        }
+      ]
+    },
+    "dialog": {
+      "delegationStrategy": "ALWAYS",
+      "intents": [
+        {
+          "name": "ComoFuera",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "persona",
+              "type": "Persona",
+              "confirmationRequired": false,
+              "elicitationRequired": true,
+              "prompts": { "elicitation": "Elicit.Slot.ComoFuera.persona" }
+            },
+            {
+              "name": "momento",
+              "type": "MomentoComida",
+              "confirmationRequired": false,
+              "elicitationRequired": false,
+              "prompts": {}
+            },
+            {
+              "name": "fecha",
+              "type": "AMAZON.DATE",
+              "confirmationRequired": false,
+              "elicitationRequired": false,
+              "prompts": {}
+            }
+          ]
+        }
+      ]
+    },
+    "prompts": [
+      {
+        "id": "Elicit.Slot.ComoFuera.persona",
+        "variations": [{ "type": "PlainText", "value": "¿Quién come fuera?" }]
+      }
+    ]
+  }
+}
