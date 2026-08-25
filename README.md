@@ -160,25 +160,65 @@ leer, y además cada evento que crea la app lleva una marca en
 
 Sincroniza al abrir la app (como mucho cada 30 min) y una vez al día por cron.
 
-### Conectarlo (Google Cloud Console, ~5 min)
+### Conectarlo (Google Cloud Console)
 
-1. Crea un proyecto y activa la **Google Calendar API**.
-2. Pantalla de consentimiento OAuth en modo **Externo → Prueba**, y añadíos los
-   dos como usuarios de prueba. Así no hace falta que Google verifique nada.
-3. **Credenciales → ID de cliente OAuth → Aplicación web**, con URI de
-   redirección `https://recetitasamorosas.vercel.app/api/google/callback`.
-4. En Vercel, **Settings → Environment Variables**:
+El panel de Google movió estos ajustes: ya **no** están en "APIs y servicios →
+Credenciales", sino en una sección aparte llamada **Google Auth Platform**. Los
+enlaces directos van más rápido que buscarlos por el menú.
 
-   ```
-   GOOGLE_CLIENT_ID=...
-   GOOGLE_CLIENT_SECRET=...
-   ```
+**1. Proyecto y API.** Crea un proyecto (selector arriba a la izquierda) y activa
+la API de Calendar:
+<https://console.cloud.google.com/apis/library/calendar-json.googleapis.com> →
+**Habilitar**.
 
-5. Vuelve a desplegar. En **Datos → Google Calendar** aparecerá el botón de
-   conectar para cada uno.
+**2. Configura la pantalla de consentimiento.**
+<https://console.cloud.google.com/auth/overview> → **Comenzar**. Te pedirá:
 
-Hasta que estén esas dos variables, la sección dice "sin configurar" y el resto
-de la app funciona igual.
+- *Nombre de la app*: Recetario. *Correo de asistencia*: el tuyo.
+- *Público*: **Externo**. (Interno solo existe con Google Workspace; con cuentas
+  de Gmail normales no aparece.)
+- *Datos de contacto*: tu correo.
+
+**3. Publica la app.** <https://console.cloud.google.com/auth/audience> →
+**Publicar aplicación**, hasta que el estado sea **En producción**.
+
+> Este paso importa más de lo que parece. Con el estado en **Prueba**, Google
+> caduca el permiso **a los 7 días** y habría que reconectar el calendario todas
+> las semanas. Publicándola, el permiso dura indefinidamente.
+>
+> Publicar **no** obliga a pasar la verificación de Google: para uso personal y
+> menos de 100 usuarios se puede usar sin verificar. El precio es una pantalla de
+> aviso la primera vez (ver paso 5).
+
+**4. Crea las credenciales.**
+<https://console.cloud.google.com/auth/clients> → **Crear cliente**:
+
+- *Tipo de aplicación*: **Aplicación web**.
+- *Nombre*: el que quieras, solo lo ves tú.
+- *URIs de redirección autorizados* → **Añadir URI**:
+  ```
+  https://recetitasamorosas.vercel.app/api/google/callback
+  ```
+  Tiene que coincidir **exactamente**: sin barra final y con https.
+- **Crear**. Copia el *ID de cliente* y el *secreto* — el secreto solo se enseña
+  una vez.
+
+Luego, en Vercel → *Settings → Environment Variables*:
+
+```
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+```
+
+y vuelve a desplegar.
+
+**5. Al conectar por primera vez** saldrá un aviso de *"Google no ha verificado
+esta aplicación"*. Es lo normal en una app privada sin verificar: pulsa
+**Configuración avanzada → Ir a Recetario (no seguro)**. Solo la primera vez, y
+solo para las personas que conectáis vosotros.
+
+Hasta que esas dos variables estén puestas, la sección dice "sin configurar" y el
+resto de la app funciona igual.
 
 ## Cómo está montado
 

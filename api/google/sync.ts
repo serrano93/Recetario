@@ -7,6 +7,7 @@ import { addDays, today } from '../../src/lib/dates.js';
 import {
   accessToken,
   actualizarEvento,
+  PermisoCaducado,
   borrarEvento,
   calendarioPropio,
   configurado,
@@ -16,6 +17,7 @@ import {
   listarEventos,
 } from '../_lib/google.js';
 import {
+  borrarIntegracion,
   guardarIntegracion,
   guardarRecetario,
   leerRecetario,
@@ -81,9 +83,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let eventos: PlanEvent[] = data.events ?? [];
     const resumen: Record<string, unknown>[] = [];
 
+    const caducados: string[] = [];
+
     for (const integracion of integraciones) {
       const persona = integracion.person_id;
-      const token = await accessToken(integracion.refresh_token);
+
+      let token: string;
+      try {
+        token = await accessToken(integracion.refresh_token);
+      } catch (e) {
+        if (e instanceof PermisoCaducado) {
+          // Se borra la integracion para que la app vuelva a ofrecer
+          // "Conectar" en vez de fallar en silencio cada vez.
+          await borrarIntegracion(persona);
+          caducados.push(persona);
+          continue;
+        }
+        throw e;
+      }
 
       // El calendario propio se necesita para escribir, y para excluirlo al leer.
       let calendarioId = integracion.calendar_id;
@@ -184,7 +201,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
     await guardarRecetario(siguiente);
 
-    return res.status(200).json({ ok: true, desde, hasta, resumen });
+    return res.status(200).json({ ok: true, desde, hasta, resumen, caducados });
   } catch (e) {
     const detalle = e instanceof Error ? e.message : String(e);
     return res.status(500).json({ error: detalle.slice(0, 400) });

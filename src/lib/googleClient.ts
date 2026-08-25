@@ -69,6 +69,8 @@ export interface ResultadoSync {
   desde?: string;
   hasta?: string;
   aviso?: string;
+  /** Personas cuyo permiso caduco: hay que volver a conectarlas. */
+  caducados?: string[];
   resumen?: { persona: string; importados: number; creados: number; actualizados: number; borrados: number }[];
 }
 

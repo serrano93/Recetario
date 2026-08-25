@@ -89,9 +89,30 @@ export async function canjearCodigo(code: string, host: string) {
   return tokenRequest({ code, grant_type: 'authorization_code', redirect_uri: redirectUri(host) });
 }
 
+/**
+ * Se lanza cuando el refresh token ya no vale y hay que volver a conectar.
+ *
+ * Pasa sobre todo si la app se quedo en estado "Prueba" en Google: ahi los
+ * permisos caducan a los 7 dias. Merece un error propio porque la solucion no
+ * es reintentar, es que una persona vuelva a dar permiso.
+ */
+export class PermisoCaducado extends Error {
+  constructor(public personId?: string) {
+    super('El permiso de Google ha caducado o se ha revocado. Hay que volver a conectar.');
+    this.name = 'PermisoCaducado';
+  }
+}
+
 /** Los access token duran una hora; se pide uno nuevo en cada sincronizacion. */
 export async function accessToken(refreshToken: string): Promise<string> {
-  const json = await tokenRequest({ refresh_token: refreshToken, grant_type: 'refresh_token' });
+  let json: Record<string, unknown>;
+  try {
+    json = await tokenRequest({ refresh_token: refreshToken, grant_type: 'refresh_token' });
+  } catch (e) {
+    // Google contesta invalid_grant tanto si caduco como si se revoco.
+    if (String(e).includes('invalid_grant')) throw new PermisoCaducado();
+    throw e;
+  }
   const token = json.access_token;
   if (typeof token !== 'string') throw new Error('Google no devolvio access_token.');
   return token;

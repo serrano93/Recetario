@@ -83,6 +83,19 @@ export function GoogleSettings() {
     setAviso(null);
     try {
       const r = await sincronizarGoogle();
+      await refrescar();
+      if (r.caducados?.length) {
+        const nombres = r.caducados
+          .map((id) => data.people.find((p) => p.id === id)?.name ?? id)
+          .join(' y ');
+        setAviso({
+          tipo: 'error',
+          texto: `El permiso de Google de ${nombres} ha caducado. Hay que volver a conectar. ` +
+            `Si pasa cada semana, es que la app sigue en estado "Prueba" en Google Cloud: publícala.`,
+        });
+        setOcupado(false);
+        return;
+      }
       if (r.aviso) {
         setAviso({ tipo: 'ok', texto: r.aviso });
       } else {
