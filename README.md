@@ -181,16 +181,21 @@ la API de Calendar:
   de Gmail normales no aparece.)
 - *Datos de contacto*: tu correo.
 
-**3. Publica la app.** <https://console.cloud.google.com/auth/audience> →
-**Publicar aplicación**, hasta que el estado sea **En producción**.
+**3. Estado de publicación.** <https://console.cloud.google.com/auth/audience>
 
-> Este paso importa más de lo que parece. Con el estado en **Prueba**, Google
-> caduca el permiso **a los 7 días** y habría que reconectar el calendario todas
-> las semanas. Publicándola, el permiso dura indefinidamente.
->
-> Publicar **no** obliga a pasar la verificación de Google: para uso personal y
-> menos de 100 usuarios se puede usar sin verificar. El precio es una pantalla de
-> aviso la primera vez (ver paso 5).
+Aquí hay que elegir, y las dos opciones son válidas:
+
+- **Prueba** (lo que usamos). Añade los dos correos en *Usuarios de prueba*.
+  Funciona todo, pero Google caduca el permiso **cada 7 días** y hay que volver
+  a conectar. La app avisa con un aviso y un botón de reconectar en cuanto pasa,
+  así que son dos toques por semana.
+- **En producción**. El permiso ya no caduca, pero Google exige un **dominio
+  autorizado verificado en Search Console**, y `vercel.app` no sirve porque el
+  dominio no es tuyo. Hace falta un dominio propio (~10 €/año) o uno gratuito de
+  <https://nic.eu.org> (gratis de verdad, pero la aprobación tarda días).
+
+Publicar **no** obliga a pasar la verificación de Google para uso personal con
+menos de 100 usuarios; lo único que hace falta es el dominio.
 
 **4. Crea las credenciales.**
 <https://console.cloud.google.com/auth/clients> → **Crear cliente**:

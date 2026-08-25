@@ -18,10 +18,15 @@ const MINUTOS_ENTRE_SYNC = 30;
  *
  * Es el disparo principal: en el plan Hobby de Vercel los cron son de una vez
  * al dia, asi que esperar solo al cron dejaria el calendario desfasado.
+ *
+ * Devuelve las personas cuyo permiso ha caducado. Con la app de Google en
+ * estado "Prueba" eso pasa cada 7 dias, asi que enterarse no puede depender de
+ * que a alguien se le ocurra entrar en la pestana Datos.
  */
-function useSyncAlAbrir() {
+function useSyncAlAbrir(): string[] {
   const { data, email } = useStore();
   const hecho = useRef(false);
+  const [caducados, setCaducados] = useState<string[]>([]);
 
   useEffect(() => {
     if (!email || hecho.current) return;
@@ -30,10 +35,14 @@ function useSyncAlAbrir() {
     const ultima = g.ultimaSync ? Date.parse(g.ultimaSync) : 0;
     if (Date.now() - ultima < MINUTOS_ENTRE_SYNC * 60_000) return;
     hecho.current = true;
-    // En silencio: si falla, la app funciona igual y se ve el error al
-    // sincronizar a mano desde Datos.
-    void sincronizarGoogle().catch(() => {});
+    // Si falla por otra cosa, en silencio: la app funciona igual y el error se
+    // ve al sincronizar a mano.
+    void sincronizarGoogle()
+      .then((r) => setCaducados(r.caducados ?? []))
+      .catch(() => {});
   }, [email, data.integraciones?.google]);
+
+  return caducados;
 }
 
 type Tab = 'disponibles' | 'semana' | 'compra' | 'datos';
@@ -68,8 +77,8 @@ function SyncBadge() {
 }
 
 function Shell() {
-  const { sync } = useStore();
-  useSyncAlAbrir();
+  const { sync, data } = useStore();
+  const caducados = useSyncAlAbrir();
   const [tab, setTab] = useState<Tab>('semana');
   const [saltarLogin, setSaltarLogin] = useState(false);
 
@@ -88,6 +97,21 @@ function Shell() {
         <h1>{actual.title}</h1>
         <SyncBadge />
       </header>
+
+      {caducados.length > 0 && tab !== 'datos' && (
+        <div className="banner banner-error row" style={{ margin: '12px 16px 0', gap: 10 }}>
+          <span className="grow">
+            El permiso de Google de{' '}
+            <strong>
+              {caducados.map((id) => data.people.find((p) => p.id === id)?.name ?? id).join(' y ')}
+            </strong>{' '}
+            ha caducado.
+          </span>
+          <button className="btn btn-sm" onClick={() => setTab('datos')}>
+            Reconectar
+          </button>
+        </div>
+      )}
 
       <main>
         {tab === 'disponibles' && <MealsView />}
