@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "recetitas amorosas",
+      "invocationName": "libreta violeta",
       "modelConfiguration": { "fallbackIntentSensitivity": { "level": "LOW" } },
       "intents": [
         { "name": "AMAZON.CancelIntent", "samples": [] },
