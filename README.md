@@ -283,11 +283,11 @@ Qué entiende:
 
 | Dices | Hace |
 |---|---|
-| *«Alexa, pregunta a libreta violeta qué cenamos hoy»* | Lee el plan de ese día |
-| *«Alexa, dile a libreta violeta que apunte tomates»* | Lo añade a la compra |
-| *«Alexa, pregunta a libreta violeta qué lleva las lentejas»* | Enumera los ingredientes |
-| *«Alexa, pregunta a libreta violeta cómo se hacen las lentejas»* | Los pasos, uno a uno; di «siguiente» |
-| *«Alexa, dile a libreta violeta que Andrea come fuera mañana»* | Crea el plan y recalcula la compra |
+| *«Alexa, pregunta a colibrí lunar qué cenamos hoy»* | Lee el plan de ese día |
+| *«Alexa, dile a colibrí lunar que apunte tomates»* | Lo añade a la compra |
+| *«Alexa, pregunta a colibrí lunar qué lleva las lentejas»* | Enumera los ingredientes |
+| *«Alexa, pregunta a colibrí lunar cómo se hacen las lentejas»* | Los pasos, uno a uno; di «siguiente» |
+| *«Alexa, dile a colibrí lunar que Andrea come fuera mañana»* | Crea el plan y recalcula la compra |
 
 Si no dices si es comida o cena, se deduce de la hora: antes de las cuatro,
 comida; después, cena. Preguntar «¿comida o cena?» a las nueve de la noche sería
@@ -311,12 +311,16 @@ de robot.
 1. [developer.amazon.com/alexa/console/ask](https://developer.amazon.com/alexa/console/ask)
    → **Crear Skill**. Nombre: Recetitas Amorosas. Idioma: **Español (ES)**.
    Modelo: **Custom**. Alojamiento: **Provision your own**.
-> El nombre de invocación es **libreta violeta**, y no describe nada a
-> propósito. Alexa+ interpreta el nombre por su SIGNIFICADO: con «recetario»
-> contestaba «tu biblioteca de cocina está vacía», y con «recetitas amorosas»
-> se ponía a buscar recetas románticas en internet. Las dos veces sin llegar a
-> llamar a la skill. Un nombre que suene a cocina siempre pierde contra la
-> función de recetas que Alexa ya trae; hace falta uno que no signifique nada.
+> El nombre de invocación es **colibrí lunar**, y no significa nada a
+> propósito. Alexa+ resuelve el nombre por lo que SIGNIFICA, y cualquier
+> palabra que ella asocie a una función suya se la queda antes de llegar a la
+> skill. Comprobado tres veces: «recetario» → «tu biblioteca de cocina está
+> vacía»; «recetitas amorosas» → se puso a buscar recetas románticas en
+> internet; «libreta violeta» → se fue a las listas y notas.
+>
+> Al elegir nombre, evita todo lo que Alexa ya hace: receta, cocina, menú,
+> plato, comida, lista, libreta, nota, compra, música, luz, casa, calendario,
+> alarma. Dos palabras que no describan nada.
 
 2. En **Build → JSON Editor**, pega el contenido de
    [`alexa/modelo-interaccion.json`](alexa/modelo-interaccion.json) y guarda.

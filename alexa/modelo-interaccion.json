@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "libreta violeta",
+      "invocationName": "colibrí lunar",
       "modelConfiguration": { "fallbackIntentSensitivity": { "level": "LOW" } },
       "intents": [
         { "name": "AMAZON.CancelIntent", "samples": [] },
