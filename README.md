@@ -11,6 +11,8 @@ con horarios flexibles.
   compartida o una distinta para cada uno.
 - **Compra** — se calcula sola a partir de lo planificado: suma cantidades,
   las escala según cuánta gente coma y descuenta lo que ya hay en la despensa.
+  Va **agrupada por sección del súper**, en orden de recorrido, para no ir y
+  volver de la carnicería a la frutería.
 - **Datos** — copia todo el recetario con instrucciones para dárselo a una IA, y
   pega su respuesta para fusionarla o reemplazarlo. Con copias de seguridad y
   deshacer.
@@ -363,6 +365,7 @@ src/
     supabase.ts     sincronización opcional (carga perezosa)
     merge.ts        fusión sin perder lo que hizo el otro (+ merge.test.ts)
     valoracion.ts   estrellas por persona y media (+ tests)
+    secciones.ts    en qué parte del súper está cada cosa (+ tests)
     snapshots.ts    copias locales para poder deshacer
     calendar.ts     evento de Google -> plan (+ calendar.test.ts)
     alexa.ts        lo que la skill entiende y contesta (+ tests)

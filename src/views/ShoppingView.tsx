@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
+import type React from 'react';
 import { useStore } from '../store.js';
 import { rangeFrom, today } from '../lib/dates.js';
 import { buildShoppingList, formatQty, normalize, parseIngredient } from '../lib/ingredients.js';
 import { IconCheck, IconCopy, IconTrash } from '../components/icons.js';
 import { newId } from '../lib/validate.js';
 import { conLapidas, sellar } from '../lib/merge.js';
+import { agruparPorSeccion } from '../lib/secciones.js';
 
 /**
  * Lista de la compra: se calcula sola a partir de lo planificado en los
@@ -24,6 +26,9 @@ export function ShoppingView() {
   const comprados = useMemo(() => new Set(data.compradosIds), [data.compradosIds]);
   const pendientes = lineas.filter((l) => !comprados.has(l.key));
   const hechos = lineas.filter((l) => comprados.has(l.key));
+  // Comprar es un recorrido, no una busqueda: agrupado por seccion se hace de
+  // una pasada en vez de ir y volver de la carniceria a la fruteria.
+  const porSeccion = useMemo(() => agruparPorSeccion(pendientes), [pendientes]);
 
   const alternar = (key: string) =>
     update((prev) => ({
@@ -68,12 +73,15 @@ export function ShoppingView() {
     });
 
   const copiar = async () => {
-    const texto = pendientes
-      .map((l) => {
-        const cant = l.amounts.map((a) => formatQty(a.qty, a.unit)).join(' + ');
-        return cant ? `- ${l.name}: ${cant}` : `- ${l.name}`;
+    const texto = porSeccion
+      .map(({ seccion, lineas: ls }) => {
+        const items = ls.map((l) => {
+          const cant = l.amounts.map((a) => formatQty(a.qty, a.unit)).join(' + ');
+          return cant ? `- ${l.name}: ${cant}` : `- ${l.name}`;
+        });
+        return `${seccion.nombre.toUpperCase()}\n${items.join('\n')}`;
       })
-      .join('\n');
+      .join('\n\n');
     try {
       await navigator.clipboard.writeText(texto);
       setCopiado(true);
@@ -119,13 +127,23 @@ export function ShoppingView() {
         )}
       </div>
 
-      <div className="card">
-        {pendientes.length === 0 && (
+      {pendientes.length === 0 && (
+        <div className="card">
           <p className="empty">
             Nada que comprar. Planifica comidas en la pestaña Semana y la lista se llena sola.
           </p>
-        )}
-        {pendientes.map((l) => (
+        </div>
+      )}
+
+      {porSeccion.map(({ seccion, lineas: ls }) => (
+        <div key={seccion.id} className="card seccion" style={{ '--seccion': seccion.color } as React.CSSProperties}>
+          <div className="seccion-head">
+            <span className="seccion-punto" />
+            {seccion.nombre}
+            <span className="grow" />
+            <span className="tiny muted">{ls.length}</span>
+          </div>
+          {ls.map((l) => (
           <div key={l.key} className="shop-item">
             <button className="meal-check" aria-pressed={false} aria-label="Marcar comprado" onClick={() => alternar(l.key)} />
             <div className="grow">
@@ -147,8 +165,9 @@ export function ShoppingView() {
               </button>
             )}
           </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ))}
 
       {hechos.length > 0 && (
         <>

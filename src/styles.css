@@ -1041,3 +1041,54 @@ select {
   font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
+
+/* ---------------------------------------------------------------
+   Secciones del supermercado
+   --------------------------------------------------------------- */
+
+.seccion {
+  overflow: hidden;
+}
+
+/* La franja de color va en el borde, no de fondo: distingue la seccion de un
+   vistazo sin restarle contraste al texto del producto. */
+.seccion-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-left: 4px solid var(--seccion);
+  background: color-mix(in srgb, var(--seccion) 9%, transparent);
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--seccion);
+}
+
+@media (prefers-color-scheme: dark) {
+  .seccion-head {
+    /* Los colores de seccion son oscuros; sobre fondo oscuro hay que aclararlos. */
+    background: color-mix(in srgb, var(--seccion) 22%, transparent);
+    color: color-mix(in srgb, var(--seccion) 45%, #fff);
+  }
+}
+
+.seccion-punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--seccion);
+  flex: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .seccion-punto {
+    background: color-mix(in srgb, var(--seccion) 45%, #fff);
+  }
+}
+
+.seccion .shop-item:first-of-type {
+  border-top: 1px solid var(--border);
+}
