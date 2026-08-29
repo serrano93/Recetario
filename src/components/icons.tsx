@@ -106,3 +106,14 @@ export const IconChef = ({ size = 22 }: P) => (
     <path d="M6 17a4.5 4.5 0 0 1-1.2-8.8 4 4 0 0 1 7.2-2.6 4 4 0 0 1 7.2 2.6A4.5 4.5 0 0 1 18 17" />
   </svg>
 );
+
+export const IconGrip = ({ size = 18 }: P) => (
+  <svg {...base(size)} aria-hidden="true">
+    <circle cx="9" cy="6" r="1.3" fill="currentColor" stroke="none" />
+    <circle cx="15" cy="6" r="1.3" fill="currentColor" stroke="none" />
+    <circle cx="9" cy="12" r="1.3" fill="currentColor" stroke="none" />
+    <circle cx="15" cy="12" r="1.3" fill="currentColor" stroke="none" />
+    <circle cx="9" cy="18" r="1.3" fill="currentColor" stroke="none" />
+    <circle cx="15" cy="18" r="1.3" fill="currentColor" stroke="none" />
+  </svg>
+);

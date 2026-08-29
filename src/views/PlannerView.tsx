@@ -1,17 +1,30 @@
 import { useMemo, useState } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import type { PlanEntry, PlanEvent, Slot } from '../types.js';
 import { SLOTS } from '../types.js';
 import { useStore } from '../store.js';
-import { dayName, dayNumber, monthName, rangeFrom, today } from '../lib/dates.js';
-import { blockedIn, coveredIn, dinersFor, entriesFor, entryLabel, eventsOn } from '../lib/plan.js';
+import { dayName, dayNumber, friendlyDate, monthName, rangeFrom, today } from '../lib/dates.js';
+import {
+  blockedIn,
+  comidasPendientes,
+  coveredIn,
+  dinersFor,
+  entriesFor,
+  entryLabel,
+  eventsOn,
+  reubicar,
+} from '../lib/plan.js';
 import { conLapidas, sellar } from '../lib/merge.js';
 import { MealSheet } from '../components/MealSheet.js';
 import { EventSheet } from '../components/EventSheet.js';
-import { IconCheck, IconPlane, IconPlus } from '../components/icons.js';
+import { IconCheck, IconGrip, IconPlane, IconPlus, IconTrash } from '../components/icons.js';
 
 type MealTarget =
   | { mode: 'new'; date: string; slot: Slot; people: string[] }
   | { mode: 'edit'; date: string; slot: Slot; entry: PlanEntry };
+
+/** Qué se está arrastrando y dónde está el dedo/ratón ahora mismo. */
+type DragState = { id: string; x: number; y: number } | null;
 
 /**
  * Calendario rodante: siempre 7 dias empezando hoy, en vez de semanas fijas de
@@ -22,9 +35,13 @@ export function PlannerView() {
   const [dias, setDias] = useState(7);
   const [meal, setMeal] = useState<MealTarget | null>(null);
   const [evento, setEvento] = useState<{ ev?: PlanEvent; from: string } | null>(null);
+  const [drag, setDrag] = useState<DragState>(null);
+  /** Clave del destino bajo el puntero: "slot|fecha|slot" o "meal|id". */
+  const [sobre, setSobre] = useState<string | null>(null);
 
   const hoy = today();
   const fechas = useMemo(() => rangeFrom(hoy, dias), [hoy, dias]);
+  const pendientes = useMemo(() => comidasPendientes(data.plan, hoy), [data.plan, hoy]);
 
   const guardarComida = (entry: PlanEntry, sobras: PlanEntry[] = []) =>
     update((prev) => {
@@ -50,6 +67,15 @@ export function PlannerView() {
     update((prev) => ({
       ...prev,
       plan: prev.plan.map((e) => (e.id === id ? sellar({ ...e, done: !e.done }) : e)),
+    }));
+
+  /** Mueve una comida a otra fecha/hueco; con `beforeId` la reordena en su sitio. */
+  const mover = (id: string, date: string, slot: Slot, beforeId?: string) =>
+    update((prev) => ({
+      ...prev,
+      plan: reubicar(prev.plan, id, date, slot, beforeId).map((e) =>
+        e.id === id ? sellar(e) : e,
+      ),
     }));
 
   const guardarEvento = (ev: PlanEvent) =>
@@ -84,8 +110,123 @@ export function PlannerView() {
 
   const persona = (id: string) => data.people.find((p) => p.id === id);
 
+  /* --- Arrastre ------------------------------------------------------ */
+
+  /** Qué destino hay bajo el puntero, para resaltarlo. */
+  const sobreDe = (x: number, y: number): string | null => {
+    const el = document.elementFromPoint(x, y);
+    if (!el) return null;
+    const meal = el.closest('[data-drop-meal]') as HTMLElement | null;
+    if (meal) return `meal|${meal.dataset.dropMeal}`;
+    const slot = el.closest('[data-drop-slot]') as HTMLElement | null;
+    if (slot) return `slot|${slot.dataset.dropSlot}`;
+    return null;
+  };
+
+  /** Aplica el movimiento segun donde se solto. */
+  const soltar = (x: number, y: number, id: string) => {
+    const el = document.elementFromPoint(x, y);
+    if (!el) return;
+    const mealEl = el.closest('[data-drop-meal]') as HTMLElement | null;
+    if (mealEl) {
+      const targetId = mealEl.dataset.dropMeal!;
+      if (targetId === id) return; // sobre si misma: no hacer nada
+      const target = data.plan.find((p) => p.id === targetId);
+      if (!target) return;
+      // Mitad superior = antes, mitad inferior = despues.
+      const rect = mealEl.getBoundingClientRect();
+      const antes = y < rect.top + rect.height / 2;
+      const delSlot = entriesFor(data.plan, target.date, target.slot);
+      const idx = delSlot.findIndex((e) => e.id === targetId);
+      const beforeId = antes ? targetId : delSlot[idx + 1]?.id;
+      mover(id, target.date, target.slot, beforeId);
+      return;
+    }
+    const slotEl = el.closest('[data-drop-slot]') as HTMLElement | null;
+    if (slotEl) {
+      const [date, slot] = (slotEl.dataset.dropSlot as string).split('|') as [string, Slot];
+      const actual = data.plan.find((p) => p.id === id);
+      if (actual && (actual.date !== date || actual.slot !== slot)) mover(id, date, slot);
+    }
+  };
+
+  const gripProps = (id: string) => ({
+    className: 'grip',
+    'aria-label': 'Arrastrar',
+    onPointerDown: (e: ReactPointerEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.currentTarget.setPointerCapture(e.pointerId);
+      setDrag({ id, x: e.clientX, y: e.clientY });
+      setSobre(null);
+    },
+    onPointerMove: (e: ReactPointerEvent<HTMLButtonElement>) => {
+      if (!drag || drag.id !== id) return;
+      setDrag({ id, x: e.clientX, y: e.clientY });
+      setSobre(sobreDe(e.clientX, e.clientY));
+    },
+    onPointerUp: (e: ReactPointerEvent<HTMLButtonElement>) => {
+      if (!drag || drag.id !== id) return;
+      soltar(e.clientX, e.clientY, id);
+      setDrag(null);
+      setSobre(null);
+    },
+    onPointerCancel: () => {
+      if (drag?.id === id) {
+        setDrag(null);
+        setSobre(null);
+      }
+    },
+  });
+
+  const arrastrada = drag ? data.plan.find((p) => p.id === drag.id) : undefined;
+
   return (
     <div className="view">
+      {pendientes.length > 0 && (
+        <section>
+          <div className="section-title">
+            <span>Pendientes de comer</span>
+            <span className="tiny muted">{pendientes.length}</span>
+          </div>
+          <div className="card" style={{ padding: 10 }}>
+            <p className="tiny muted" style={{ margin: '0 4px 8px' }}>
+              Planificadas y compradas, pero sin cocinar. Arrástralas a un hueco libre o descártalas.
+            </p>
+            {pendientes.map((entry) => (
+              <div key={entry.id} className="pendiente">
+                <button {...gripProps(entry.id)}>
+                  <IconGrip />
+                </button>
+                <button
+                  className="meal-check"
+                  aria-pressed={false}
+                  aria-label="Marcar como hecho"
+                  onClick={() => alternarHecho(entry.id)}
+                />
+                <button
+                  className="grow"
+                  style={{ background: 'none', border: 0, padding: 0, textAlign: 'left' }}
+                  onClick={() => setMeal({ mode: 'edit', date: entry.date, slot: entry.slot, entry })}
+                >
+                  <div className="meal-name">
+                    {entry.leftoverOf && <span className="tag">sobras</span>}{' '}
+                    {entryLabel(data, entry)}
+                  </div>
+                  <div className="tiny muted">desde el {friendlyDate(entry.date, hoy)}</div>
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  aria-label="Descartar"
+                  onClick={() => borrarComida(entry.id)}
+                >
+                  <IconTrash size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="section-title">
         <span>Próximos {dias} días</span>
         <button className="btn btn-ghost btn-sm" onClick={() => setEvento({ from: hoy })}>
@@ -139,7 +280,11 @@ export function PlannerView() {
               const faltan = comensales.filter((id) => !cubiertos.has(id));
 
               return (
-                <div key={slot} className="slot">
+                <div
+                  key={slot}
+                  className={`slot${sobre === `slot|${fecha}|${slot}` ? ' drop-over' : ''}`}
+                  data-drop-slot={`${fecha}|${slot}`}
+                >
                   <div className="slot-head">
                     <span className="slot-label">{slot}</span>
                     {comensales.length > 0 && (
@@ -161,8 +306,15 @@ export function PlannerView() {
 
                   {entries.map((entry) => {
                     const compartida = entry.people.length === data.people.length;
+                    const esArrastrada = drag?.id === entry.id;
                     return (
-                      <div key={entry.id} className={`meal${entry.done ? ' meal-done' : ''}`}>
+                      <div
+                        key={entry.id}
+                        className={`meal${entry.done ? ' meal-done' : ''}${
+                          esArrastrada ? ' meal-dragging' : ''
+                        }${sobre === `meal|${entry.id}` ? ' drop-over' : ''}`}
+                        data-drop-meal={entry.id}
+                      >
                         <button
                           className="meal-check"
                           aria-pressed={!!entry.done}
@@ -201,6 +353,9 @@ export function PlannerView() {
                               })}
                             </div>
                           )}
+                        </button>
+                        <button {...gripProps(entry.id)}>
+                          <IconGrip />
                         </button>
                       </div>
                     );
@@ -242,6 +397,12 @@ export function PlannerView() {
       <button className="btn btn-block" onClick={() => setDias((d) => d + 7)}>
         Ver 7 días más
       </button>
+
+      {drag && arrastrada && (
+        <div className="drag-ghost" style={{ left: drag.x, top: drag.y }}>
+          {entryLabel(data, arrastrada)}
+        </div>
+      )}
 
       {meal && (
         <MealSheet

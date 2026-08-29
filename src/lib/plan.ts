@@ -91,3 +91,39 @@ export function entryLabel(data: AppData, entry: PlanEntry): string {
   }
   return entry.text ?? 'Sin definir';
 }
+
+/**
+ * Mueve una entrada del plan a otra fecha y hueco.
+ *
+ * Sin `beforeId` va al final de su hueco destino; con `beforeId` se inserta
+ * justo antes de esa otra entrada, lo que permite reordenar dentro del hueco.
+ * Es pura: no toca el array original.
+ */
+export function reubicar(
+  plan: PlanEntry[],
+  entryId: string,
+  date: string,
+  slot: Slot,
+  beforeId?: string,
+): PlanEntry[] {
+  const entrada = plan.find((e) => e.id === entryId);
+  if (!entrada) return plan;
+  const resto = plan.filter((e) => e.id !== entryId);
+  const movida: PlanEntry = { ...entrada, date, slot };
+  if (beforeId) {
+    const idx = resto.findIndex((e) => e.id === beforeId);
+    if (idx >= 0) return [...resto.slice(0, idx), movida, ...resto.slice(idx)];
+  }
+  return [...resto, movida];
+}
+
+/**
+ * Comidas de dias pasados que nunca se marcaron como hechas: se planificaron
+ * (y se compraron) pero siguen sin cocinar. Son candidatas a recolocarse en un
+ * hueco libre o a descartarse. Ordenadas de mas antigua a mas reciente.
+ */
+export function comidasPendientes(plan: PlanEntry[], hoy: string): PlanEntry[] {
+  return plan
+    .filter((e) => e.date < hoy && !e.done)
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
