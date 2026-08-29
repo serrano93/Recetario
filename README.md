@@ -199,15 +199,17 @@ vuelve. Si lo editas a mano deja de ser de Google y ya no se refresca.
 > "comer fuera" te borra también la cena — pasó durante el desarrollo y lo pilló
 > un test.
 
-**Escribir.** Las comidas se publican en un calendario aparte llamado
-**Recetario**, que se puede ocultar sin ensuciar el principal. No se guarda el id
-de cada evento: en cada sincronización se compara el calendario con el plan y se
-crea, actualiza o borra lo que haga falta. Así no hay estado que se descuadre, y
-si alguien borra un evento a mano, la siguiente sincronización lo repone.
+**Escribir.** Las comidas se publican como eventos en el calendario principal de
+cada cuenta de Google. No se guarda el id de cada evento: en cada sincronización
+se compara el calendario con el plan y se crea, actualiza o borra lo que haga
+falta. Así no hay estado que se descuadre, y si alguien borra un evento a mano,
+la siguiente sincronización lo repone.
 
-**Sin bucles**, con dos cierres: el calendario "Recetario" se excluye siempre al
-leer, y además cada evento que crea la app lleva una marca en
-`extendedProperties` para reconocerlo aunque llegara a leerse.
+**Sin bucles.** Cada evento que crea la app lleva una marca en
+`extendedProperties`; al leer, esos eventos se reconocen y se descartan, así que
+publicar y leer del mismo calendario no entra en bucle. Los calendarios que aún
+se llamen "Recetario" (de la versión anterior) se excluyen al leer por
+compatibilidad.
 
 Sincroniza al abrir la app (como mucho cada 30 min) y una vez al día por cron.
 

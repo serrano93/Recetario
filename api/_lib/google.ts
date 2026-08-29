@@ -14,6 +14,7 @@ const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const APP_SECRET = process.env.APP_SECRET;
 
 export const ZONA = 'Europe/Madrid';
+/** Calendario aparte de la version anterior; se excluye al leer por si aun existe. */
 export const CALENDARIO = 'Recetario';
 
 export const SCOPES = [
@@ -135,7 +136,7 @@ async function api(token: string, ruta: string, init: RequestInit = {}): Promise
   return json;
 }
 
-/** Lista los calendarios del usuario, para poder excluir el nuestro al leer. */
+/** Lista los calendarios del usuario. */
 export async function listarCalendarios(token: string): Promise<{ id: string; summary: string }[]> {
   const json = (await api(token, '/users/me/calendarList?maxResults=250')) as {
     items?: { id: string; summary: string }[];
@@ -143,16 +144,13 @@ export async function listarCalendarios(token: string): Promise<{ id: string; su
   return json.items ?? [];
 }
 
-/** Devuelve el calendario "Recetario", creandolo la primera vez. */
-export async function calendarioPropio(token: string, conocido?: string | null): Promise<string> {
-  if (conocido) return conocido;
-  const existente = (await listarCalendarios(token)).find((c) => c.summary === CALENDARIO);
-  if (existente) return existente.id;
-  const creado = (await api(token, '/calendars', {
-    method: 'POST',
-    body: JSON.stringify({ summary: CALENDARIO, timeZone: ZONA }),
-  })) as { id: string };
-  return creado.id;
+/**
+ * Id del calendario donde se publican las comidas: el principal de la cuenta.
+ * "primary" es el alias que Google entiende para el calendario principal del
+ * usuario, asi que no hace falta crear ni buscar ningun calendario aparte.
+ */
+export function calendarioPropio(): string {
+  return 'primary';
 }
 
 export async function listarEventos(

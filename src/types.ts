@@ -162,7 +162,7 @@ export interface Tombstone {
 export interface AjustesGoogle {
   /** Traer del calendario quien no come en casa. */
   leer: boolean;
-  /** Publicar las comidas en un calendario propio. */
+  /** Publicar las comidas como eventos en el calendario principal. */
   escribir: boolean;
   /** Hora a la que se publican, en formato "14:00". */
   horaComida: string;

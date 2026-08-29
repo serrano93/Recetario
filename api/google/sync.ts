@@ -18,7 +18,6 @@ import {
 } from '../_lib/google.js';
 import {
   borrarIntegracion,
-  guardarIntegracion,
   guardarRecetario,
   leerRecetario,
   listarIntegraciones,
@@ -41,11 +40,11 @@ function sumarHora(hhmm: string, horas: number): string {
  * Leer: los eventos de sus calendarios que afectan a alguna comida entran como
  * planes con `origen: 'google'`.
  *
- * Escribir: las comidas del plan se publican en un calendario propio llamado
- * "Recetario". La reconciliacion se hace comparando lo que hay en ese
- * calendario con lo que hay en el plan, en vez de guardar el id de cada evento
- * en el documento: asi no hay estado que se pueda descuadrar y, si alguien
- * borra un evento a mano, la siguiente sincronizacion lo repone.
+ * Escribir: las comidas del plan se publican como eventos en el calendario
+ * principal de cada cuenta. La reconciliacion se hace comparando lo que hay en
+ * ese calendario con lo que hay en el plan, en vez de guardar el id de cada
+ * evento en el documento: asi no hay estado que se pueda descuadrar y, si
+ * alguien borra un evento a mano, la siguiente sincronizacion lo repone.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!configurado()) {
@@ -104,21 +103,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         throw e;
       }
 
-      // El calendario propio se necesita para escribir, y para excluirlo al leer.
-      let calendarioId = integracion.calendar_id;
-      if (escribir) {
-        calendarioId = await calendarioPropio(token, calendarioId);
-        if (calendarioId !== integracion.calendar_id) {
-          await guardarIntegracion(persona, integracion.refresh_token, calendarioId);
-        }
-      }
-
       const cuenta = { persona, importados: 0, creados: 0, actualizados: 0, borrados: 0 };
 
       /* --- Leer ---------------------------------------------------------- */
       if (leer) {
         const calendarios = await listarCalendarios(token);
-        const ajenos = calendarios.filter((c) => c.id !== calendarioId && c.summary !== CALENDARIO);
+        const ajenos = calendarios.filter((c) => c.summary !== CALENDARIO);
         for (const cal of ajenos) {
           vistos.push({ id: cal.id, nombre: cal.summary, cuenta: persona });
         }
@@ -153,7 +143,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       /* --- Escribir ------------------------------------------------------ */
-      if (escribir && calendarioId) {
+      if (escribir) {
+        const calendarioId = calendarioPropio();
         const publicados = await listarEventos(token, calendarioId, desde, hasta);
         // Indexados por la comida a la que corresponden.
         const porComida = new Map<string, GoogleEvent>();

@@ -65,7 +65,8 @@ create table if not exists public.integraciones (
   person_id     text primary key,
   proveedor     text        not null default 'google',
   refresh_token text        not null,
-  -- Calendario "Recetario" que crea la app para publicar las comidas.
+  -- En desuso: antes guardaba el calendario "Recetario"; hoy se publica en el
+  -- calendario principal ("primary") y no hace falta recordar ningun id.
   calendar_id   text,
   actualizado   timestamptz not null default now()
 );

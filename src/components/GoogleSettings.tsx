@@ -235,8 +235,7 @@ export function GoogleSettings() {
             {ajustes.escribir ? '✓ ' : ''}Publicar las comidas
           </button>
           <p className="tiny muted" style={{ margin: 0 }}>
-            Crea un calendario aparte llamado <strong>Recetario</strong> con las comidas
-            planificadas, para poder ocultarlo sin ensuciar el vuestro.
+            Publica las comidas planificadas como eventos en tu calendario principal de Google.
           </p>
         </div>
       </div>
