@@ -182,51 +182,6 @@ export function PlannerView() {
 
   return (
     <div className="view">
-      {pendientes.length > 0 && (
-        <section>
-          <div className="section-title">
-            <span>Pendientes de comer</span>
-            <span className="tiny muted">{pendientes.length}</span>
-          </div>
-          <div className="card" style={{ padding: 10 }}>
-            <p className="tiny muted" style={{ margin: '0 4px 8px' }}>
-              Planificadas y compradas, pero sin cocinar. Arrástralas a un hueco libre o descártalas.
-            </p>
-            {pendientes.map((entry) => (
-              <div key={entry.id} className="pendiente">
-                <button {...gripProps(entry.id)}>
-                  <IconGrip />
-                </button>
-                <button
-                  className="meal-check"
-                  aria-pressed={false}
-                  aria-label="Marcar como hecho"
-                  onClick={() => alternarHecho(entry.id)}
-                />
-                <button
-                  className="grow"
-                  style={{ background: 'none', border: 0, padding: 0, textAlign: 'left' }}
-                  onClick={() => setMeal({ mode: 'edit', date: entry.date, slot: entry.slot, entry })}
-                >
-                  <div className="meal-name">
-                    {entry.leftoverOf && <span className="tag">sobras</span>}{' '}
-                    {entryLabel(data, entry)}
-                  </div>
-                  <div className="tiny muted">desde el {friendlyDate(entry.date, hoy)}</div>
-                </button>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  aria-label="Descartar"
-                  onClick={() => borrarComida(entry.id)}
-                >
-                  <IconTrash size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       <div className="section-title">
         <span>Próximos {dias} días</span>
         <button className="btn btn-ghost btn-sm" onClick={() => setEvento({ from: hoy })}>
@@ -397,6 +352,51 @@ export function PlannerView() {
       <button className="btn btn-block" onClick={() => setDias((d) => d + 7)}>
         Ver 7 días más
       </button>
+
+      {pendientes.length > 0 && (
+        <section>
+          <div className="section-title">
+            <span>Pendientes de comer</span>
+            <span className="tiny muted">{pendientes.length}</span>
+          </div>
+          <div className="card" style={{ padding: 10 }}>
+            <p className="tiny muted" style={{ margin: '0 4px 8px' }}>
+              Planificadas y compradas, pero sin cocinar. Arrástralas a un hueco libre o descártalas.
+            </p>
+            {pendientes.map((entry) => (
+              <div key={entry.id} className="pendiente">
+                <button {...gripProps(entry.id)}>
+                  <IconGrip />
+                </button>
+                <button
+                  className="meal-check"
+                  aria-pressed={false}
+                  aria-label="Marcar como hecho"
+                  onClick={() => alternarHecho(entry.id)}
+                />
+                <button
+                  className="grow"
+                  style={{ background: 'none', border: 0, padding: 0, textAlign: 'left' }}
+                  onClick={() => setMeal({ mode: 'edit', date: entry.date, slot: entry.slot, entry })}
+                >
+                  <div className="meal-name">
+                    {entry.leftoverOf && <span className="tag">sobras</span>}{' '}
+                    {entryLabel(data, entry)}
+                  </div>
+                  <div className="tiny muted">desde el {friendlyDate(entry.date, hoy)}</div>
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  aria-label="Descartar"
+                  onClick={() => borrarComida(entry.id)}
+                >
+                  <IconTrash size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {drag && arrastrada && (
         <div className="drag-ghost" style={{ left: drag.x, top: drag.y }}>
