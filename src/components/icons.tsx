@@ -43,6 +43,14 @@ export const IconData = ({ size = 22 }: P) => (
   </svg>
 );
 
+export const IconWallet = ({ size = 22 }: P) => (
+  <svg {...base(size)} aria-hidden="true">
+    <rect x="2" y="6" width="20" height="14" rx="2.5" />
+    <path d="M2 10.5h20" />
+    <path d="M16.5 15.5h.01" strokeWidth={2.6} />
+  </svg>
+);
+
 export const IconPlus = ({ size = 22 }: P) => (
   <svg {...base(size)} aria-hidden="true">
     <path d="M12 5v14M5 12h14" />

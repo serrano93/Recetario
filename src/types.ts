@@ -143,6 +143,36 @@ export interface ManualItem {
 }
 
 /**
+ * Un gasto de la casa. `pagadoPor` dice de donde salio el dinero (una persona o
+ * la cuenta conjunta, que es de los dos al 50 %), e `imputadoA` a quien se le
+ * carga el gasto: una sola persona (es suyo) o las dos (se comparte a medias).
+ *
+ * El balance que se enseña en la pestana Gastos sale de combinar esas dos
+ * senales; las reglas exactas viven en `src/lib/gastos.ts`.
+ */
+export interface Gasto {
+  id: string;
+  /** Fecha ISO local, YYYY-MM-DD. */
+  fecha: string;
+  /** "Compra del super", "Cena con Marta"... */
+  concepto: string;
+  /** Euros, > 0. */
+  cantidad: number;
+  /** Quien puso el dinero: un id de persona, o 'conjunta' (cuenta de los dos). */
+  pagadoPor: PersonId | 'conjunta';
+  /** A quien se imputa: una persona (suyo) o las dos (compartido 50/50). */
+  imputadoA: PersonId[];
+  /**
+   * Fila creada por el boton "Hacer cuentas": apunta la liquidacion con la que
+   * el balance vuelve a cero sin borrar el historial. Es solo una marca de
+   * estilo; en el balance se comporta como cualquier otro gasto.
+   */
+  ajuste?: boolean;
+  /** Ultima vez que se toco. Lo usa la fusion para saber que version gana. */
+  updatedAt?: string;
+}
+
+/**
  * Lapida de algo borrado.
  *
  * Sin esto, al fusionar con el otro movil lo borrado reaparece: para el otro
@@ -195,6 +225,12 @@ export interface AppData {
   events: PlanEvent[];
   /** Items sueltos de la compra: papel de cocina, cervezas... */
   compra: ManualItem[];
+  /**
+   * Gastos de la casa. Opcional por compatibilidad: los documentos anteriores a
+   * esta pestana no lo traen; el saneado lo rellena con [] al cargar.
+   * Se gestiona solo desde la app: el export para la IA no lo incluye.
+   */
+  gastos?: Gasto[];
   /** Ids borrados, para que la fusion no los resucite. Se podan a los 30 dias. */
   deleted?: Tombstone[];
   /** Ajustes de integraciones. Sin secretos: se sirve al navegador entero. */

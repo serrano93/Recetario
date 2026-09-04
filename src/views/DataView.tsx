@@ -147,7 +147,7 @@ export function DataView() {
         <p className="tiny muted">
           {modo === 'fusionar'
             ? 'Añade y actualiza lo que venga, sin tocar el resto. Acepta trozos sueltos, como solo las recetas nuevas.'
-            : 'Reemplaza el recetario entero. Lo que no venga en el JSON se pierde.'}
+            : 'Reemplaza el recetario entero. Lo que no venga en el JSON se pierde. Los gastos de la pestaña Gastos no se tocan: viven solo allí.'}
         </p>
         <button className="btn btn-primary btn-block" onClick={aplicar} disabled={!pegado.trim()}>
           {modo === 'fusionar' ? 'Fusionar con lo que hay' : 'Reemplazar todo el recetario'}
@@ -278,7 +278,7 @@ export function DataView() {
           <button
             className="btn btn-danger"
             onClick={() => {
-              if (confirm('¿Empezar de cero con las recetas de ejemplo? Se pierde todo lo demás.')) {
+              if (confirm('¿Empezar de cero con las recetas de ejemplo? Se pierde el recetario y los ajustes (los gastos de la pestaña Gastos se quedan).')) {
                 replaceAll(seedData());
                 setAviso({ tipo: 'ok', texto: 'Recetario reiniciado.' });
               }

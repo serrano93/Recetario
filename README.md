@@ -16,6 +16,36 @@ con horarios flexibles.
 - **Datos** — copia todo el recetario con instrucciones para dárselo a una IA, y
   pega su respuesta para fusionarla o reemplazarlo. Con copias de seguridad y
   deshacer.
+- **Gastos** — las cuentas de la casa: quién pagó cada gasto, a quién se le
+  imputa, y el balance de quién debe a quién, con su botón para hacer cuentas.
+
+## Gastos (las cuentas de la casa)
+
+Cada gasto apunta **quién puso el dinero** (Javi, Andrea o la cuenta conjunta)
+y **a quién se imputa** (uno solo, o los dos). De ahí sale el balance:
+
+- Pagado de **la conjunta** = cada uno puso su mitad, así que un gasto de los
+  dos no crea deuda. Si se paga de la conjunta algo solo de uno, ese le debe la
+  mitad al otro (usó su parte de la cuenta).
+- Pagado **de un bolsillo** un gasto de los dos: el otro debe la mitad. El caso
+  del súper: si Javi paga 100 € de su dinero, Andrea le debe 50 € (los pone en
+  la conjunta o se los bizumea).
+- Un gasto imputado a uno solo pagado por el otro: deuda por el importe entero.
+- Cada uno pagando lo suyo no mueve el balance.
+
+Las cuentas se hacen en céntimos y cada deuda se redondea al céntimo; las deudas
+en los dos sentidos se cancelan entre sí. La aritmética vive en `src/lib/gastos.ts`
+y está cubierta por tests (`gastos.test.ts`).
+
+**Hacer cuentas.** Cuando el balance no es cero, el botón apunta la liquidación:
+quien debe paga al otro el importe exacto y el balance vuelve a cero **sin
+borrar el historial** (la fila queda marcada como *liquidación* y se puede
+quitar si no hacía falta). Los gastos se sincronizan y fusionan como el resto de
+la app: cada uno apunta los suyos y no se pisan.
+
+Los gastos **no se editan con una IA**: el documento que se copia en Datos no los
+incluye, y reemplazar o reiniciar el recetario nunca los toca — viven solo en su
+pestaña y se vacían únicamente borrándolos allí.
 
 ## Los planes ("Javi come fuera", "Andrea de viaje")
 

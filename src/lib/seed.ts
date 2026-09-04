@@ -123,6 +123,7 @@ export function seedData(): AppData {
     plan: [],
     events: [],
     compra: [],
+    gastos: [],
     compradosIds: [],
     despensa: [...DESPENSA_POR_DEFECTO],
     updatedAt: new Date().toISOString(),
