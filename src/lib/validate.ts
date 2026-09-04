@@ -2,9 +2,11 @@ import { CURRENT_VERSION, SLOTS } from '../types.js';
 import type {
   AjustesGoogle,
   AppData,
+  Gasto,
   Ingredient,
   ManualItem,
   Person,
+  PersonId,
   PlanEntry,
   PlanEvent,
   Recipe,
@@ -244,6 +246,42 @@ function parseManual(v: unknown): ManualItem | null {
   };
 }
 
+/**
+ * Gastos de la casa. La gente a la que se imputa o que pago tiene que existir
+ * (o ser 'conjunta'); si el JSON trae a alguien desconocido, se descarta a esa
+ * persona pero se conserva el gasto con lo que quede. Sin imputacion valida o
+ * sin cantidad, el gasto no significa nada y se tira.
+ */
+function parseGasto(v: unknown, peopleIds: Set<string>): Gasto | null {
+  if (!isRecord(v)) return null;
+  const concepto = asString(v.concepto ?? v.nombre ?? v.descripcion).trim();
+  if (!concepto) return null;
+  const cantidad = asNumber(v.cantidad ?? v.importe ?? v.amount);
+  if (cantidad === undefined || cantidad <= 0) return null;
+  const pagadoPor = asString(v.pagadoPor ?? v.pagador ?? v.pagado_por ?? v.quienPago).trim();
+  const esConjunta = pagadoPor === 'conjunta' || pagadoPor === 'los dos' || pagadoPor === 'ambos';
+  const pagadorValido = esConjunta || peopleIds.has(pagadoPor);
+  if (!pagadorValido) return null;
+
+  const crudo = asArray(v.imputadoA ?? v.imputado_a ?? v.imputarA ?? v.para ?? v.aQuien);
+  // Si no se dice, por defecto es de los dos: es la pestana de gastos comunes.
+  const imputadoA = (crudo.length > 0 ? crudo : [...peopleIds])
+    .map((x) => asString(x).trim())
+    .filter((id) => peopleIds.has(id));
+  if (imputadoA.length === 0) return null;
+
+  return {
+    id: asString(v.id).trim() || newId('g'),
+    fecha: asDate(v.fecha ?? v.date, today()),
+    concepto,
+    cantidad,
+    pagadoPor: esConjunta ? 'conjunta' : (pagadoPor as PersonId),
+    imputadoA,
+    ajuste: v.ajuste === true || v.liquidacion === true ? true : undefined,
+    updatedAt: asString(v.updatedAt) || undefined,
+  };
+}
+
 function parseTombstones(v: unknown): Tombstone[] {
   return asArray(v)
     .map((x) => {
@@ -304,6 +342,12 @@ export function sanitize(input: unknown): ValidationResult {
     .map(parseManual)
     .filter((x): x is ManualItem => x !== null);
 
+  const gastosRaw = asArray(raw.gastos);
+  const gastos = gastosRaw.map((v) => parseGasto(v, peopleIds)).filter((x): x is Gasto => x !== null);
+  if (gastos.length < gastosRaw.length) {
+    warnings.push(`Se descartaron ${gastosRaw.length - gastos.length} gastos mal formados.`);
+  }
+
   const despensaRaw = raw.despensa ?? raw.pantry;
   const despensa = despensaRaw === undefined ? [...DESPENSA_POR_DEFECTO] : asStringArray(despensaRaw);
 
@@ -316,6 +360,7 @@ export function sanitize(input: unknown): ValidationResult {
       plan,
       events,
       compra,
+      gastos,
       deleted: parseTombstones(raw.deleted),
       integraciones: isRecord(raw.integraciones)
         ? { google: parseGoogle(raw.integraciones.google) }

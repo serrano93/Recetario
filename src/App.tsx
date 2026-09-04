@@ -4,9 +4,10 @@ import { StoreProvider, useStore } from './store.js';
 import { MealsView } from './views/MealsView.js';
 import { PlannerView } from './views/PlannerView.js';
 import { ShoppingView } from './views/ShoppingView.js';
+import { GastosView } from './views/GastosView.js';
 import { DataView } from './views/DataView.js';
 import { Login } from './components/Login.js';
-import { IconBook, IconCalendar, IconCart, IconChef, IconData } from './components/icons.js';
+import { IconBook, IconCalendar, IconCart, IconChef, IconData, IconWallet } from './components/icons.js';
 import { supabaseEnabled } from './lib/supabase.js';
 import { sincronizarGoogle } from './lib/googleClient.js';
 
@@ -45,12 +46,13 @@ function useSyncAlAbrir(): string[] {
   return caducados;
 }
 
-type Tab = 'disponibles' | 'semana' | 'compra' | 'datos';
+type Tab = 'disponibles' | 'semana' | 'compra' | 'gastos' | 'datos';
 
 const TABS: { id: Tab; label: string; title: string; icon: ReactNode }[] = [
   { id: 'disponibles', label: 'Comidas', title: 'Qué podemos comer', icon: <IconBook /> },
   { id: 'semana', label: 'Semana', title: 'Los próximos días', icon: <IconCalendar /> },
   { id: 'compra', label: 'Compra', title: 'Lista de la compra', icon: <IconCart /> },
+  { id: 'gastos', label: 'Gastos', title: 'Las cuentas de la casa', icon: <IconWallet /> },
   { id: 'datos', label: 'Datos', title: 'Datos y ajustes', icon: <IconData /> },
 ];
 
@@ -117,6 +119,7 @@ function Shell() {
         {tab === 'disponibles' && <MealsView />}
         {tab === 'semana' && <PlannerView />}
         {tab === 'compra' && <ShoppingView />}
+        {tab === 'gastos' && <GastosView />}
         {tab === 'datos' && <DataView />}
       </main>
 

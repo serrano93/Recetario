@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { AppData, PlanEntry, Recipe } from '../types.js';
+import type { AppData, Gasto, PlanEntry, Recipe } from '../types.js';
 import { conLapidas, merge, sellar } from './merge.js';
 
 /** Recetario minimo sobre el que montar cada caso. */
@@ -169,5 +169,50 @@ describe('ajustes de integraciones', () => {
     const suyo = conGoogle('2026-01-02T00:00:00Z', ['ev_a'], '21:00');
     const deElla = conGoogle('2026-01-01T00:00:00Z', ['ev_b'], '21:00');
     expect(merge(suyo, deElla).integraciones?.google?.ignorados.sort()).toEqual(['ev_a', 'ev_b']);
+  });
+});
+
+describe('gastos en la fusion', () => {
+  function gasto(id: string, updatedAt?: string): Gasto {
+    return {
+      id,
+      fecha: '2026-08-30',
+      concepto: 'Super',
+      cantidad: 50,
+      pagadoPor: 'javi',
+      imputadoA: ['javi', 'andrea'],
+      updatedAt,
+    };
+  }
+
+  it('cada movil apunta un gasto distinto a la vez: se conservan los dos', () => {
+    const local = base({ gastos: [gasto('g1', '2026-08-30T10:00:00.000Z')] });
+    const remoto = base({ gastos: [gasto('g2', '2026-08-30T10:00:00.000Z')] });
+    const salida = merge(local, remoto);
+    expect(salida.gastos?.map((g) => g.id).sort()).toEqual(['g1', 'g2']);
+  });
+
+  it('del mismo gasto gana la version con el sello mas reciente', () => {
+    const local = base({ gastos: [gasto('g1', '2026-08-30T10:00:00.000Z')] });
+    const remoto = base({
+      gastos: [{ ...gasto('g1', '2026-08-30T11:00:00.000Z'), cantidad: 99 }],
+    });
+    expect(merge(local, remoto).gastos?.[0]?.cantidad).toBe(99);
+  });
+
+  it('borrar en un movil deja lapida: no resucita en el otro', () => {
+    const conGasto = base({ gastos: [gasto('g1', '2026-08-30T10:00:00.000Z')] });
+    const borrado = base({
+      gastos: [],
+      deleted: conLapidas(conGasto, ['g1']),
+    });
+    expect(merge(conGasto, borrado).gastos).toEqual([]);
+  });
+
+  it('documentos viejos sin la clave gastos no rompen la fusion', () => {
+    const sinGastos = base({ updatedAt: '2026-08-30T10:00:00.000Z' });
+    const conGastos = base({ gastos: [gasto('g1', '2026-08-30T11:00:00.000Z')] });
+    expect(merge(sinGastos, conGastos).gastos?.map((g) => g.id)).toEqual(['g1']);
+    expect(merge(conGastos, sinGastos).gastos?.map((g) => g.id)).toEqual(['g1']);
   });
 });

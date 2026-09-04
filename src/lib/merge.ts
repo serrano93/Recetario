@@ -129,6 +129,7 @@ export function merge(local: AppData, remoto: AppData): AppData {
     plan: mezclarLista(local.plan, remoto.plan, mapa),
     events: mezclarLista(local.events, remoto.events, mapa),
     compra: mezclarLista(local.compra, remoto.compra, mapa),
+    gastos: mezclarLista(local.gastos ?? [], remoto.gastos ?? [], mapa),
     deleted: lapidas,
     // Sin esto los ajustes de Google se perdian en CADA fusion, que es en cada
     // carga y cada vez que el otro movil tocaba algo.

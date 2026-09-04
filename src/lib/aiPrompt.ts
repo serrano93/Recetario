@@ -11,6 +11,12 @@ import { today } from './dates.js';
 export function buildAiPrompt(data: AppData): string {
   const nombres = data.people.map((p) => `${p.name} (id "${p.id}")`).join(' y ');
 
+  // Los gastos no se editan con una IA: son las cuentas de la casa y se
+  // gestionan solo desde su pestana. Si viajaran en este documento, un
+  // "reemplazar" descuidado se los llevaria por delante.
+  const sinGastos = { ...data } as Partial<AppData>;
+  delete sinGastos.gastos;
+
   return `Actua como una API, no como un chat. Tu unica salida valida es un bloque
 JSON con el documento completo de nuestro recetario, modificado segun lo que te
 pida al final.
@@ -78,7 +84,7 @@ ESTRUCTURA
 
 DOCUMENTO ACTUAL
 \`\`\`json
-${JSON.stringify(data, null, 2)}
+${JSON.stringify(sinGastos, null, 2)}
 \`\`\`
 
 --------------------------------------------------------------------

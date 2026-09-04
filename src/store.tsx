@@ -84,23 +84,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const commit = useCallback(
-    (next: AppData) => {
-      const stamped = { ...next, updatedAt: new Date().toISOString() };
-      setData(stamped);
-      saveLocal(stamped);
-      if (!supabaseEnabled || skipPush.current) {
-        skipPush.current = false;
-        return;
-      }
-      pending.current = stamped;
-      if (timer.current) clearTimeout(timer.current);
-      // Agrupamos rafagas de ediciones en una sola escritura.
-      timer.current = setTimeout(() => void flush(), 600);
-    },
-    [flush],
-  );
-
   const update = useCallback(
     (fn: (prev: AppData) => AppData) => {
       setData((prev) => {
@@ -121,11 +104,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     (next: AppData, motivo = 'antes de sobrescribir') => {
       setData((prev) => {
         pushSnapshot(prev, motivo);
-        return prev;
+        // Los gastos se gestionan solo desde su pestana (con `update`). Este
+        // reemplazo sirve para el recetario (respuesta de una IA, reiniciar,
+        // restaurar una copia) y NUNCA toca las cuentas: aunque `next` traiga
+        // una lista vacia, aqui se conservan las actuales.
+        const conGastos: AppData = { ...next, gastos: prev.gastos ?? [] };
+        const stamped = { ...conGastos, updatedAt: new Date().toISOString() };
+        saveLocal(stamped);
+        if (!supabaseEnabled || skipPush.current) {
+          skipPush.current = false;
+          return stamped;
+        }
+        pending.current = stamped;
+        if (timer.current) clearTimeout(timer.current);
+        // Agrupamos rafagas de ediciones en una sola escritura.
+        timer.current = setTimeout(() => void flush(), 600);
+        return stamped;
       });
-      commit(next);
     },
-    [commit],
+    [flush],
   );
 
   /**
